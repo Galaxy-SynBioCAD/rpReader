@@ -1,4 +1,4 @@
-FROM ibisba/rpsbml
+FROM ibisba/rpbase
 
 RUN apt-get install --quiet --yes --no-install-recommends \ 
 	libxext6  \
