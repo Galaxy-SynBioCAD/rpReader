@@ -1,9 +1,10 @@
-FROM brsynth/rpbase
+FROM ibisba/rpbase
 
 RUN apt-get install --quiet --yes --no-install-recommends \ 
 	libxext6  \
     	libxrender-dev  && \
     conda install -y -c rdkit rdkit && \
+    conda install -c conda-forge flask-restful && \
     mkdir input_cache && \
     wget https://www.metanetx.org/cgi-bin/mnxget/mnxref/chem_xref.tsv -P /home/input_cache/ && \
     wget https://www.metanetx.org/cgi-bin/mnxget/mnxref/reac_xref.tsv -P /home/input_cache/ && \
@@ -11,6 +12,7 @@ RUN apt-get install --quiet --yes --no-install-recommends \
     wget https://www.metanetx.org/cgi-bin/mnxget/mnxref/comp_xref.tsv -P /home/input_cache/
 
 COPY rpReader.py /home/
+COPY rp2ReaderServe.py /home/
 
 #get the rules
 RUN wget https://retrorules.org/dl/preparsed/rr02/rp3/hs -O /home/rules_rall_rp3.tar.gz && \
@@ -27,3 +29,13 @@ RUN wget https://retrorules.org/dl/this/is/not/a/secret/path/rr02 -O /home/rr02_
     rm /home/rr02_more_data.tar.gz
 
 RUN python rpReader.py
+
+ENTRYPOINT ["python"]
+CMD ["/home/rp2ReaderServe.py"]
+
+# Open server port
+EXPOSE 8997
+
+
+#wget rules_rall_TODO -P /home/input_cache/ && \
+#wget rr_compounds_TODO -P /home/input_cache/
