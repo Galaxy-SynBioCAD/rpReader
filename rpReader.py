@@ -640,7 +640,7 @@ class rpReader:
     #  @maxRuleId maximal numer of rules associated with a step
     #  @return toRet_rp_paths Pathway object
     #def outPaths(self, path, maxRuleIds=10):
-    def outPathsToSBML(self, rp_strc, rp_transformation, path, maxRuleIds=10, pathId='rp_pathway', compartment_id='MNXC3'):
+    def outPathsToSBML_mem(self, rp_strc, rp_transformation, path, maxRuleIds=10, pathId='rp_pathway', compartment_id='MNXC3'):
         #try:
         rp_paths = {}
         #reactions = self.rr_reactionsingleRule.split('__')[1]s
@@ -831,6 +831,213 @@ class rpReader:
                 altPathNum += 1
         return sbml_paths
 
+
+
+
+    #TODO: make sure that you account for the fact that each reaction may have multiple associated reactions
+    ## Function to parse the out_paths.csv file
+    #
+    #  Reading the RP2path output and extract all the information for each pathway
+    #  RP2path Metabolic pathways from out_paths.csv
+    #  create all the different values for heterologous paths from the RP2path out_paths.csv file
+    #  Note that path_step are in reverse order here
+    #
+    #  @param self Object pointer
+    #  @param path The out_path.csv file path
+    #  @maxRuleId maximal numer of rules associated with a step
+    #  @return toRet_rp_paths Pathway object
+    #def outPaths(self, path, maxRuleIds=10):
+    def outPathsToSBML_hdd(self, rp_strc, rp_transformation, path, tmpOutputFolder, maxRuleIds=10, pathId='rp_pathway', compartment_id='MNXC3'):
+        #try:
+        rp_paths = {}
+        #reactions = self.rr_reactionsingleRule.split('__')[1]s
+        #with open(path, 'r') as f:
+        #### we might pass binary in the REST version
+        if isinstance(path, bytes):
+            reader = csv.reader(io.StringIO(path.decode('utf-8')))
+        else:
+            reader = csv.reader(open(path, 'r'))
+        next(reader)
+        current_path_id = 0
+        path_step = 1
+        for row in reader:
+            try:
+                if not int(row[0])==current_path_id:
+                    path_step = 1
+                else:
+                    path_step += 1
+                #important to leave them in order
+                current_path_id = int(row[0])
+            except ValueError:
+                self.logger.error('Cannot convert path_id to int ('+str(row[0])+')')
+                #return {}
+                return False
+            #################################
+            ruleIds = row[2].split(',')
+            if ruleIds==None:
+                self.logger.error('The rulesIds is None')
+                #pass # or continue
+                continue
+            ###WARNING: This is the part where we select some rules over others
+            # we do it by sorting the list according to their score and taking the topx
+            tmp_rr_reactions = {}
+            for r_id in ruleIds:
+                for rea_id in self.rr_reactions[r_id]:
+                    tmp_rr_reactions[str(r_id)+'__'+str(rea_id)] = self.rr_reactions[r_id][rea_id]
+            if len(ruleIds)>int(maxRuleIds):
+                self.logger.warning('There are too many rules, limiting the number to random top '+str(maxRuleIds))
+                try:
+                    #ruleIds = [y for y,_ in sorted([(i, self.rr_reactions[i]['rule_score']) for i in ruleIds])][:maxRuleIds]
+                    ruleIds = [y for y,_ in sorted([(i, tmp_rr_reactions[i]['rule_score']) for i in tmp_rr_reactions])][:int(maxRuleIds)]
+                except KeyError:
+                    self.logger.warning('Could not select topX due inconsistencies between rules ids and rr_reactions... selecting random instead')
+                    ruleIds = random.sample(tmp_rr_reactions, int(maxRuleIds))
+            else:
+                ruleIds = tmp_rr_reactions
+            sub_path_step = 1
+            for singleRule in ruleIds:
+                tmpReac = {'rule_id': singleRule.split('__')[0],
+                        'mnxr': singleRule.split('__')[1],
+                        'rule_score': self.rr_reactions[singleRule.split('__')[0]][singleRule.split('__')[1]]['rule_score'],
+                        'right': {},
+                        'left': {},
+                        'path_id': int(row[0]),
+                        'step': path_step,
+                        'transformation_id': row[1][:-2]}
+                ############ LEFT ##############
+                for l in row[3].split(':'):
+                    tmp_l = l.split('.')
+                    try:
+                        #tmpReac['left'].append({'stoichio': int(tmp_l[0]), 'name': tmp_l[1]})
+                        mnxm = '' #TODO: change this
+                        if tmp_l[1] in self.deprecatedMNXM_mnxm:
+                            mnxm = self.deprecatedMNXM_mnxm[tmp_l[1]]
+                        else:
+                            mnxm = tmp_l[1]
+                        tmpReac['left'][mnxm] = int(tmp_l[0])
+                    except ValueError:
+                        self.logger.error('Cannot convert tmp_l[0] to int ('+str(tmp_l[0])+')')
+                        #return {}
+                        return False
+                ############## RIGHT ###########
+                for r in row[4].split(':'):
+                    tmp_r = r.split('.')
+                    try:
+                        #tmpReac['right'].append({'stoichio': int(tmp_r[0]), 'name': tmp_r[1]})
+                        mnxm = '' #TODO change this
+                        if tmp_r[1] in self.deprecatedMNXM_mnxm:
+                            mnxm = self.deprecatedMNXM_mnxm[tmp_r[1]]  #+':'+self.rr_reactions[tmpReac['rule_id']]['left']
+                        else:
+                            mnxm = tmp_r[1]  #+':'+self.rr_reactions[tmpReac['rule_id']]['left']
+                        tmpReac['right'][mnxm] = int(tmp_r[0])
+                    except ValueError:
+                        self.logger.error('Cannot convert tmp_r[0] to int ('+str(tmp_r[0])+')')
+                        return {}
+                #################################
+                if not int(row[0]) in rp_paths:
+                    rp_paths[int(row[0])] = {}
+                if not int(path_step) in rp_paths[int(row[0])]:
+                    rp_paths[int(row[0])][int(path_step)] = {}
+                rp_paths[int(row[0])][int(path_step)][int(sub_path_step)] = tmpReac
+                #rp_paths[int(row[0])][int(path_step)] = tmpReac
+                sub_path_step += 1
+        #except (TypeError, FileNotFoundError) as e:
+        #    self.logger.error(e)
+        #    self.logger.error('Could not read the out_paths file ('+str(path)+') ')
+        #    return {}
+        #### pathToSBML ####
+        #self.rp_paths = rp_paths
+        try:
+            mnxc = self.nameCompXref[compartment_id]
+        except KeyError:
+            self.logger.error('Could not Xref compartment_id ('+str(compartment_id)+')')
+            return False
+        #for pathNum in self.rp_paths:
+        for pathNum in rp_paths:
+            #first level is the list of lists of sub_steps
+            #second is itertools all possible combinations using product
+            altPathNum = 1
+            #for comb_path in list(itertools.product(*[[y for y in self.rp_paths[pathNum][i]] for i in self.rp_paths[pathNum]])):
+            #for comb_path in list(itertools.product(*[[y for y in rp_paths[pathNum][i]] for i in rp_paths[pathNum]])):
+            #    steps = []
+            #    for i in range(len(comb_path)):
+            #        #steps.append(self.rp_paths[pathNum][i+1][comb_path[i]])
+            #        steps.append(rp_paths[pathNum][i+1][comb_path[i]])
+            for comb_path in list(itertools.product(*[[(i,y) for y in rp_paths[pathNum][i]] for i in rp_paths[pathNum]])):
+                steps = []
+                for i, y in comb_path:
+                    steps.append(rp_paths[pathNum][i][y])
+                path_id = steps[0]['path_id']
+                rpsbml = rpSBML.rpSBML('rp_'+str(path_id)+'_'+str(altPathNum))
+                #1) create a generic Model, ie the structure and unit definitions that we will use the most
+                ##### TODO: give the user more control over a generic model creation:
+                #   -> special attention to the compartment
+                rpsbml.genericModel('RetroPath_Pathway_'+str(path_id)+'_'+str(altPathNum),
+                        'RP_model_'+str(path_id)+'_'+str(altPathNum),
+                        self.compXref[mnxc],
+                        compartment_id)
+                #2) create the pathway (groups)
+                rpsbml.createPathway(pathId)
+                #3) find all the unique species and add them to the model
+                all_meta = set([i for step in steps for lr in ['left', 'right'] for i in step[lr]])
+                for meta in all_meta:
+                    try:
+                        chemName = self.mnxm_strc[meta]['name']
+                    except KeyError:
+                        chemName = None
+                    try:
+                        rpsbml.createSpecies(meta,
+                                compartment_id,
+                                chemName,
+                                self.chemXref[meta],
+                                rp_strc[meta]['inchi'],
+                                rp_strc[meta]['inchikey'],
+                                rp_strc[meta]['smiles'])
+                    except KeyError:
+                        try:
+                            rpsbml.createSpecies(meta,
+                                    compartment_id,
+                                    chemName,
+                                    {},
+                                    rp_strc[meta]['inchi'],
+                                    rp_strc[meta]['inchikey'],
+                                    rp_strc[meta]['smiles'])
+                        except KeyError:
+                            self.logger.error('Could not create the following metabolite in either rpReaders rp_strc or mnxm_strc: '+str(meta))
+                #4) add the complete reactions and their annotations
+                for step in steps:
+                    #add the substep to the model
+                    step['sub_step'] = altPathNum
+                    rpsbml.createReaction('RP'+str(step['step']), # parameter 'name' of the reaction deleted : 'RetroPath_Reaction_'+str(step['step']),
+                            'B_999999', #only for genericModel
+                            'B_0', #only for genericModel
+                            step,
+                            compartment_id,
+                            rp_transformation[step['transformation_id']]['rule'],
+                            rp_transformation[step['transformation_id']]['ec'])
+                    #5) adding the consumption of the target
+                targetStep = {'rule_id': None, 
+                        'left': {[i for i in all_meta if i[:6]=='TARGET'][0]: 1}, 
+                        'right': [], 
+                        'step': None, 
+                        'sub_step': None, 
+                        'path_id': None, 
+                        'transformation_id': None, 
+                        'rule_score': None, 
+                        'mnxr': None}
+                rpsbml.createReaction('targetSink',
+                        'B_999999',
+                        'B_0',
+                        targetStep,
+                        compartment_id)
+                #6) Optional?? Add the flux objectives. Could be in another place, TBD
+                rpsbml.createFluxObj('rpFBA_obj', 'targetSink', 1, True)
+                #sbml_paths['rp_'+str(step['path_id'])+'_'+str(altPathNum)] = rpsbml
+                rpsbml.writeSBML(tmpOutputFolder)
+                altPathNum += 1
+
+
+
     
     ## Function to group all the functions for parsing RP2 output to SBML files
     #
@@ -842,11 +1049,29 @@ class rpReader:
     # @param maxRuleIds int The maximal number of members in a single substep (Reaction Rule)
     # @param compartment_id string The ID of the SBML's model compartment where to add the reactions to
     # @return Boolean The success or failure of the function
-    def rp2ToSBML(self, compounds, scope, outPaths, maxRuleIds=10, pathId='rp_pathway', compartment_id='MNXC3'):
+    def rp2ToSBML_mem(self, 
+                      compounds, 
+                      scope, 
+                      outPaths, 
+                      maxRuleIds=10, 
+                      pathId='rp_pathway', 
+                      compartment_id='MNXC3'):
         rp_strc = self.compounds(compounds)
         rp_transformation = self.transformation(scope)
-        return self.outPathsToSBML(rp_strc, rp_transformation, outPaths, maxRuleIds, pathId, compartment_id)
+        return self.outPathsToSBML_mem(rp_strc, rp_transformation, outPaths, maxRuleIds, pathId, compartment_id)
 
+
+    def rp2ToSBML_hdd(self, 
+                      compounds, 
+                      scope, 
+                      outPaths, 
+                      tmpOutputFolder, 
+                      maxRuleIds=10, 
+                      pathId='rp_pathway', 
+                      compartment_id='MNXC3'):
+        rp_strc = self.compounds(compounds)
+        rp_transformation = self.transformation(scope)
+        self.outPathsToSBML_hdd(rp_strc, rp_transformation, outPaths, tmpOutputFolder, maxRuleIds, pathId, compartment_id)
 
     #######################################################################
     ############################# JSON input ##############################
@@ -1269,9 +1494,9 @@ class rpReader:
     # @param self Object pointer
     # @param inFile Input file
     # @param compartment_id compartment of the
-    def validationToSBML(self, inFile, compartment_id='MNXC3'):
+    def validationToSBML_mem(self, inFile, compartment_id='MNXC3'):
         data = self.parseValidation(inFile)
-        self.sbml_paths = {}
+        sbml_paths = {}
         #TODO: need to exit at this loop
         for path_id in data:
             try:
@@ -1368,9 +1593,117 @@ class rpReader:
                         compartment_id,
                         None,
                         data[path_id]['steps'][stepNum]['ec_numbers'])
-                rpsbml.createFluxObj('rpFBA_obj', 'M'+str(max(data[path_id]['steps'])), 1, True)
-            self.sbml_paths['measured_'+str(path_id)] = rpsbml
+                rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
+            sbml_paths['measured_'+str(path_id)] = rpsbml
+        return sbml_paths
 
+
+    ## Parse the validation TSV to SBML
+    #
+    # Parse the TSV file to SBML format and adds them to the self.sbml_paths
+    #
+    # @param self Object pointer
+    # @param inFile Input file
+    # @param compartment_id compartment of the
+    def validationToSBML_hdd(self, inFile, tmpOutputFolder, compartment_id='MNXC3'):
+        data = self.parseValidation(inFile)
+        #TODO: need to exit at this loop
+        for path_id in data:
+            try:
+                mnxc = self.nameCompXref[compartment_id]
+            except KeyError:
+                self.logger.error('Could not Xref compartment_id ('+str(compartment_id)+')')
+                return False
+            rpsbml = rpSBML.rpSBML('measured_'+str(path_id))
+            #1) create a generic Model, ie the structure and unit definitions that we will use the most
+            ##### TODO: give the user more control over a generic model creation:
+            #   -> special attention to the compartment
+            rpsbml.genericModel('measured_'+str(path_id),
+                                'measured_'+str(path_id), 
+                                self.compXref[mnxc], 
+                                compartment_id)
+            #find all the chemical species and add them to an SBML
+            #2) create the pathway (groups)
+            rpsbml.createPathway(path_id)
+            #3) find all the unique species and add them to the model
+            allChem = []
+            for stepNum in data[path_id]['steps']:
+                #because of the nature of the input we need to remove duplicates
+                for i in data[path_id]['steps'][stepNum]['substrates']+data[path_id]['steps'][stepNum]['products']:
+                    if not i in allChem:
+                        allChem.append(i)
+            #add them to the SBML
+            for chem in allChem:
+                #PROBLEM: as it stands one expects the meta to be MNX
+                if 'mnx' in chem['dbref']:
+                    #must list the different models
+                    meta = sorted(chem['dbref']['mnx'], key=lambda x : int(x.replace('MNXM', '')))[0]
+                else:
+                    #TODO: add the species with other types of xref in annotation
+                    self.logger.warning('Some species are not referenced by a MNX id and will be ignored')
+                    #break
+                #try to conver the inchi into the other structures
+                smiles = None
+                inchikey = None
+                try:
+                    resConv = self._convert_depiction(idepic=chem['inchi'], itype='inchi', otype={'smiles','inchikey'})
+                    smiles = resConv['smiles']
+                    inchikey = resConv['inchikey']
+                except DepictionError as e:
+                    self.logger.warning('Could not convert the following SMILES to InChI: '+str(row[1]))
+                #create a new species
+                try:
+                    chemName = self.mnxm_strc[meta]['name']
+                except KeyError:
+                    chemName = None
+                try:
+                    rpsbml.createSpecies(meta,
+                            compartment_id,
+                            chemName,
+                            self.chemXref[meta],
+                            chem['inchi'],
+                            inchikey,
+                            smiles)
+                except KeyError:
+                    try:
+                        rpsbml.createSpecies(meta,
+                                compartment_id,
+                                chemName,
+                                {},
+                                chem['inchi'],
+                                inchikey,
+                                smiles)
+                    except KeyError:
+                        self.logger.error('Could not create the following metabolite: '+str(meta))
+                        break
+            #4) add the complete reactions and their annotations
+            #need to convert the validation to step for reactions
+            for stepNum in data[path_id]['steps']:
+                toSend = {'left': {}, 'right': {}, 'rule_id': None, 'mnxr': None, 'rule_score': None, 'path_id': path_id, 'step': stepNum, 'sub_step': None}
+                for chem in data[path_id]['steps'][stepNum]['substrates']:
+                    if 'mnx' in chem['dbref']:
+                        meta = sorted(chem['dbref']['mnx'], key=lambda x : int(x.replace('MNXM', '')))[0]
+                        toSend['left'][meta] = 1
+                    else:
+                        self.logger.error('Need all the species to have a MNX ID')
+                        break
+                for chem in data[path_id]['steps'][stepNum]['products']:
+                    if 'mnx' in chem['dbref']:
+                        meta = sorted(chem['dbref']['mnx'], key=lambda x : int(x.replace('MNXM', '')))[0]
+                        toSend['right'][meta] = 1
+                    else:
+                        self.logger.error('Need all the species to have a MNX ID')
+                        break
+                #if all are full add it
+                rpsbml.createReaction('M'+str(stepNum),
+                        'B_999999', #only for genericModel
+                        'B_0', #only for genericModel
+                        toSend,
+                        compartment_id,
+                        None,
+                        data[path_id]['steps'][stepNum]['ec_numbers'])
+                rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
+            rpsbml.writeSBML(tmpOutputFolder)
 
     #TODO: move this to another place
 
