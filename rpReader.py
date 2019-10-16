@@ -985,25 +985,35 @@ class rpReader:
                         chemName = self.mnxm_strc[meta]['name']
                     except KeyError:
                         chemName = None
+                    #compile as much info as you can
+                    #xref
                     try:
-                        rpsbml.createSpecies(meta,
-                                compartment_id,
-                                chemName,
-                                self.chemXref[meta],
-                                rp_strc[meta]['inchi'],
-                                rp_strc[meta]['inchikey'],
-                                rp_strc[meta]['smiles'])
+                        spe_xref = self.chemXref[meta]
                     except KeyError:
-                        try:
-                            rpsbml.createSpecies(meta,
-                                    compartment_id,
-                                    chemName,
-                                    {},
-                                    rp_strc[meta]['inchi'],
-                                    rp_strc[meta]['inchikey'],
-                                    rp_strc[meta]['smiles'])
-                        except KeyError:
-                            self.logger.error('Could not create the following metabolite in either rpReaders rp_strc or mnxm_strc: '+str(meta))
+                        spe_xref = {}
+                    #inchi
+                    try:
+                        spe_inchi = rp_strc[meta]['inchi']
+                    except KeyError:
+                        spe_inchi = None
+                    #inchikey
+                    try:
+                        spe_inchikey = rp_strc[meta]['inchikey']
+                    except KeyError:
+                        spe_inchikey = None
+                    #smiles
+                    try:
+                        spe_smiles = rp_strc[meta]['smiles']
+                    except KeyError:
+                        spe_smiles = None
+                    #pass the information to create the species
+                    rpsbml.createSpecies(meta,
+                            compartment_id,
+                            chemName,
+                            spe_xref,
+                            spe_inchi,
+                            spe_inchikey,
+                            spe_smiles)
                 #4) add the complete reactions and their annotations
                 for step in steps:
                     #add the substep to the model
