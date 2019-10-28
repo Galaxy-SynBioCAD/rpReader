@@ -25,6 +25,9 @@ api = Api(app)
 
 #TODO: test that it works well
 #declare the rpReader globally to avoid reading the pickle at every instance
+
+
+#TODO: test passing the parameters directly
 rpreader = rpReader.rpReader()
 
 
@@ -61,6 +64,7 @@ class RestQuery(Resource):
         rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds, 
                             rp2_scope, 
                             rp2paths_outPaths,
+                            None,
                             int(params['maxRuleIds']),
                             params['path_id'],
                             params['compartment_id'])

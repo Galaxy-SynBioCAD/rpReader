@@ -639,8 +639,7 @@ class rpReader:
     #  @param path The out_path.csv file path
     #  @maxRuleId maximal numer of rules associated with a step
     #  @return toRet_rp_paths Pathway object
-    #def outPaths(self, path, maxRuleIds=10):
-    def outPathsToSBML(self, rp_strc, rp_transformation, path, maxRuleIds=10, pathId='rp_pathway', compartment_id='MNXC3'):
+    def outPathsToSBML(self, rp_strc, rp_transformation, path, tmpOutputFolder=None, maxRuleIds=10, pathId='rp_pathway', compartment_id='MNXC3'):
         #try:
         rp_paths = {}
         #reactions = self.rr_reactionsingleRule.split('__')[1]s
@@ -745,9 +744,8 @@ class rpReader:
         except KeyError:
             self.logger.error('Could not Xref compartment_id ('+str(compartment_id)+')')
             return False
-        #self.sbml_paths = {}
-        sbml_paths = {}
         #for pathNum in self.rp_paths:
+        sbml_paths = {}
         for pathNum in rp_paths:
             #first level is the list of lists of sub_steps
             #second is itertools all possible combinations using product
@@ -780,25 +778,36 @@ class rpReader:
                         chemName = self.mnxm_strc[meta]['name']
                     except KeyError:
                         chemName = None
+                    #compile as much info as you can
+                    #xref
                     try:
-                        rpsbml.createSpecies(meta,
-                                compartment_id,
-                                chemName,
-                                self.chemXref[meta],
-                                rp_strc[meta]['inchi'],
-                                rp_strc[meta]['inchikey'],
-                                rp_strc[meta]['smiles'])
+                        spe_xref = self.chemXref[meta]
                     except KeyError:
-                        try:
-                            rpsbml.createSpecies(meta,
-                                    compartment_id,
-                                    chemName,
-                                    {},
-                                    rp_strc[meta]['inchi'],
-                                    rp_strc[meta]['inchikey'],
-                                    rp_strc[meta]['smiles'])
-                        except KeyError:
-                            self.logger.error('Could not create the following metabolite in either rpReaders rp_strc or mnxm_strc: '+str(meta))
+                        spe_xref = {}
+                    #inchi
+                    try:
+                        spe_inchi = rp_strc[meta]['inchi']
+                    except KeyError:
+                        spe_inchi = None
+                    #inchikey
+                    try:
+                        spe_inchikey = rp_strc[meta]['inchikey']
+                    except KeyError:
+                        spe_inchikey = None
+                    #smiles
+                    try:
+                        spe_smiles = rp_strc[meta]['smiles']
+                    except KeyError:
+                        spe_smiles = None
+                    #pass the information to create the species
+                    rpsbml.createSpecies(meta,
+                            compartment_id,
+                            chemName,
+                            spe_xref,
+                            spe_inchi,
+                            spe_inchikey,
+                            spe_smiles,
+                            True)
                 #4) add the complete reactions and their annotations
                 for step in steps:
                     #add the substep to the model
@@ -827,10 +836,13 @@ class rpReader:
                         compartment_id)
                 #6) Optional?? Add the flux objectives. Could be in another place, TBD
                 rpsbml.createFluxObj('rpFBA_obj', 'targetSink', 1, True)
-                sbml_paths['rp_'+str(step['path_id'])+'_'+str(altPathNum)] = rpsbml
+                if tmpOutputFolder:
+                    rpsbml.writeSBML(tmpOutputFolder)
+                else:
+                    sbml_paths['rp_'+str(step['path_id'])+'_'+str(altPathNum)] = rpsbml
                 altPathNum += 1
         return sbml_paths
-
+    
     
     ## Function to group all the functions for parsing RP2 output to SBML files
     #
@@ -842,10 +854,17 @@ class rpReader:
     # @param maxRuleIds int The maximal number of members in a single substep (Reaction Rule)
     # @param compartment_id string The ID of the SBML's model compartment where to add the reactions to
     # @return Boolean The success or failure of the function
-    def rp2ToSBML(self, compounds, scope, outPaths, maxRuleIds=10, pathId='rp_pathway', compartment_id='MNXC3'):
+    def rp2ToSBML(self, 
+                  compounds, 
+                  scope, 
+                  outPaths, 
+                  tmpOutputFolder=None, 
+                  maxRuleIds=10, 
+                  pathId='rp_pathway', 
+                  compartment_id='MNXC3'):
         rp_strc = self.compounds(compounds)
         rp_transformation = self.transformation(scope)
-        return self.outPathsToSBML(rp_strc, rp_transformation, outPaths, maxRuleIds, pathId, compartment_id)
+        return self.outPathsToSBML(rp_strc, rp_transformation, outPaths, tmpOutputFolder, maxRuleIds, pathId, compartment_id)
 
 
     #######################################################################
@@ -866,6 +885,7 @@ class rpReader:
     #  @param self Object pointer
     # @param colJson Dictionnary of 
     #  @return rpsbml.document the SBML document
+    #TODO: update this to include _hdd parsing
     def jsonToSBML(self, collJson, pathId='rp_pathway', compartment_id='MNXC3'):
         #global parameters used for all parameters
         pathNum = 1
@@ -1015,7 +1035,6 @@ class rpReader:
         except KeyError:
             self.logger.error('Could not Xref compartment_id ('+str(compartment_id)+')')
             return False
-        #self.sbml_paths = {}
         sbml_paths = {}
         for pathNum in rp_paths:
             #first level is the list of lists of sub_steps
@@ -1053,30 +1072,41 @@ class rpReader:
                     else:
                         cid = meta
                     # retreive the name of the molecule
+                    #here we want to gather the info from rpReader's rp_strc and mnxm_strc
                     try:
                         chemName = self.mnxm_strc[meta]['name']
                     except KeyError:
                         chemName = None
-                    #here we want to gather the info from rpReader's rp_strc and mnxm_strc
+                    #compile as much info as you can
+                    #xref
                     try:
-                        rpsbml.createSpecies(cid,
-                                compartment_id,
-                                chemName,
-                                self.chemXref[cid],
-                                species_list[pathNum][meta]['inchi'],
-                                species_list[pathNum][meta]['inchikey'],
-                                species_list[pathNum][meta]['smiles'])
+                        spe_xref = self.chemXref[meta]
                     except KeyError:
-                        try:
-                            rpsbml.createSpecies(meta,
-                                    compartment_id,
-                                    chemName,
-                                    {},
-                                    species_list[pathNum][meta]['inchi'],
-                                    species_list[pathNum][meta]['inchikey'],
-                                    species_list[pathNum][meta]['smiles'])
-                        except KeyError:
-                            self.logger.error('Could not create the following metabolite in either rpReaders rp_strc or mnxm_strc: '+str(meta))
+                        spe_xref = {}
+                    #inchi
+                    try:
+                        spe_inchi = rp_strc[meta]['inchi']
+                    except KeyError:
+                        spe_inchi = None
+                    #inchikey
+                    try:
+                        spe_inchikey = rp_strc[meta]['inchikey']
+                    except KeyError:
+                        spe_inchikey = None
+                    #smiles
+                    try:
+                        spe_smiles = rp_strc[meta]['smiles']
+                    except KeyError:
+                        spe_smiles = None
+                    #pass the information to create the species
+                    rpsbml.createSpecies(meta,
+                            compartment_id,
+                            chemName,
+                            spe_xref,
+                            spe_inchi,
+                            spe_inchikey,
+                            spe_smiles,
+                            True)
                 #4) add the reactions and their annotations
                 for step in steps:
                     #add the substep to the model
@@ -1255,7 +1285,11 @@ class rpReader:
         else:
             toRetTwo = {}
             for pathId in toRet:
-                final_pro_mnx = toRet[pathId]['steps'][max(toRet[pathId]['steps'])]['products'][0]['dbref']['mnx'][0]
+                try:
+                    final_pro_mnx = toRet[pathId]['steps'][max(toRet[pathId]['steps'])]['products'][0]['dbref']['mnx'][0]
+                except KeyError:
+                    self.logger.error('The species '+str(toRet[pathId]['steps'][max(toRet[pathId]['steps'])]['products'][0]['name'])+' does not contain a mnx database reference... skipping whole pathway number '+str(pathId))
+                    continue
                 if not final_pro_mnx in toRetTwo:
                     toRetTwo[final_pro_mnx] = {}
                 toRetTwo[final_pro_mnx][pathId] = toRet[pathId]
@@ -1269,9 +1303,9 @@ class rpReader:
     # @param self Object pointer
     # @param inFile Input file
     # @param compartment_id compartment of the
-    def validationToSBML(self, inFile, compartment_id='MNXC3'):
+    def validationToSBML(self, inFile, tmpOutputFolder=None, compartment_id='MNXC3'):
         data = self.parseValidation(inFile)
-        self.sbml_paths = {}
+        sbml_paths = {}
         #TODO: need to exit at this loop
         for path_id in data:
             try:
@@ -1305,9 +1339,8 @@ class rpReader:
                     meta = sorted(chem['dbref']['mnx'], key=lambda x : int(x.replace('MNXM', '')))[0]
                 else:
                     #TODO: add the species with other types of xref in annotation
-                    self.logger.warning('Some species are not referenced by a MNX id or will be ignored')
+                    self.logger.warning('Some species are not referenced by a MNX id and will be ignored')
                     #break
-                    
                 #try to conver the inchi into the other structures
                 smiles = None
                 inchikey = None
@@ -1318,30 +1351,41 @@ class rpReader:
                 except DepictionError as e:
                     self.logger.warning('Could not convert the following SMILES to InChI: '+str(row[1]))
                 #create a new species
+                #here we want to gather the info from rpReader's rp_strc and mnxm_strc
                 try:
                     chemName = self.mnxm_strc[meta]['name']
                 except KeyError:
                     chemName = None
+                #compile as much info as you can
+                #xref
                 try:
-                    rpsbml.createSpecies(meta,
-                            compartment_id,
-                            chemName,
-                            self.chemXref[meta],
-                            chem['inchi'],
-                            inchikey,
-                            smiles)
+                    spe_xref = self.chemXref[meta]
                 except KeyError:
-                    try:
-                        rpsbml.createSpecies(meta,
-                                compartment_id,
-                                chemName,
-                                {},
-                                chem['inchi'],
-                                inchikey,
-                                smiles)
-                    except KeyError:
-                        self.logger.error('Could not create the following metabolite: '+str(meta))
-                        break
+                    spe_xref = {}
+                #inchi
+                try:
+                    spe_inchi = self.mnxm_strc[meta]['inchi']
+                except KeyError:
+                    spe_inchi = None
+                #inchikey
+                try:
+                    spe_inchikey = self.mnxm_strc[meta]['inchikey']
+                except KeyError:
+                    spe_inchikey = None
+                #smiles
+                try:
+                    spe_smiles = self.mnxm_strc[meta]['smiles']
+                except KeyError:
+                    spe_smiles = None
+                #pass the information to create the species
+                rpsbml.createSpecies(meta,
+                        compartment_id,
+                        chemName,
+                        spe_xref,
+                        spe_inchi,
+                        spe_inchikey,
+                        spe_smiles,
+                        True)
             #4) add the complete reactions and their annotations
             #need to convert the validation to step for reactions
             for stepNum in data[path_id]['steps']:
@@ -1368,10 +1412,18 @@ class rpReader:
                         compartment_id,
                         None,
                         data[path_id]['steps'][stepNum]['ec_numbers'])
-                rpsbml.createFluxObj('rpFBA_obj', 'M'+str(max(data[path_id]['steps'])), 1, True)
-            self.sbml_paths['measured_'+str(path_id)] = rpsbml
+            rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
+            if tmpOutputFolder:
+                rpsbml.writeSBML(tmpOutputFolder)
+            else:
+                sbml_paths['measured_'+str(path_id)] = rpsbml
+        if tmpOutputFolder:
+            return {}
+        else:
+            return sbml_paths
 
 
+    """
     #TODO: move this to another place
 
     ## Generate the sink from a given model and the
@@ -1408,6 +1460,7 @@ class rpReader:
             return False
         else:
             return True
+    """
 
 if __name__== "__main__":
     rpReader()
