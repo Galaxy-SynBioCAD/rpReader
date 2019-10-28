@@ -1,5 +1,9 @@
 from rdkit.Chem import MolFromSmiles, MolFromInchi, MolToSmiles, MolToInchi, MolToInchiKey, AddHs
 import csv
+import logging
+import os
+import pickle
+import gzip
 
 ## Error function for the convertion of structures
 #
@@ -47,6 +51,8 @@ class rpCache:
         self.chemXref = None
         self.compXref = None
         self.nameCompXref = None
+        if not self._loadCache():
+            raise KeyError
 
 
 
@@ -105,17 +111,16 @@ class rpCache:
             urllib.request.urlretrieve('https://www.metanetx.org/cgi-bin/mnxget/mnxref/comp_xref.tsv', 
                     dirname+'/input_cache/comp_xref.tsv')
         ###################### Populate the cache #################################
-        rpcache = rpCache()
         if not os.path.isfile(dirname+'/cache/deprecatedMNXM_mnxm.pickle'):
-            rpcache.deprecatedMNXM(dirname+'/input_cache/chem_xref.tsv')
-            pickle.dump(rpcache.deprecatedMNXM_mnxm, open(dirname+'/cache/deprecatedMNXM_mnxm.pickle', 'wb'))
+            self.deprecatedMNXM(dirname+'/input_cache/chem_xref.tsv')
+            pickle.dump(self.deprecatedMNXM_mnxm, open(dirname+'/cache/deprecatedMNXM_mnxm.pickle', 'wb'))
         self.deprecatedMNXM_mnxm = pickle.load(open(dirname+'/cache/deprecatedMNXM_mnxm.pickle', 'rb'))
         if not os.path.isfile(dirname+'/cache/deprecatedMNXR_mnxr.pickle'):
-            rpcache.deprecatedMNXR(dirname+'/input_cache/reac_xref.tsv')
-            pickle.dump(rpcache.deprecatedMNXR_mnxr, open(dirname+'/cache/deprecatedMNXR_mnxr.pickle', 'wb'))
+            self.deprecatedMNXR(dirname+'/input_cache/reac_xref.tsv')
+            pickle.dump(self.deprecatedMNXR_mnxr, open(dirname+'/cache/deprecatedMNXR_mnxr.pickle', 'wb'))
         self.deprecatedMNXR_mnxr = pickle.load(open(dirname+'/cache/deprecatedMNXR_mnxr.pickle', 'rb'))
         if not os.path.isfile(dirname+'/cache/mnxm_strc.pickle.gz') or not os.path.isfile(dirname+'/cache/inchikey_mnxm.pickle.gz'):
-            mnxm_strc, inchikey_mnxm = rpcache.mnx_strc(dirname+'/input_cache/rr_compounds.tsv',
+            mnxm_strc, inchikey_mnxm = self.mnx_strc(dirname+'/input_cache/rr_compounds.tsv',
                                                         dirname+'/input_cache/chem_prop.tsv')
             pickle.dump(mnxm_strc, gzip.open(dirname+'/cache/mnxm_strc.pickle.gz','wb'))
             pickle.dump(inchikey_mnxm, gzip.open(dirname+'/cache/inchikey_mnxm.pickle.gz','wb'))
@@ -130,20 +135,19 @@ class rpCache:
             pickle.dump(inchikey_mnxm, gzip.open(dirname+'/cache/inchikey_mnxm.pickle.gz','wb'))
         if not os.path.isfile(dirname+'/cache/rr_reactions.pickle'):
             pickle.dump(
-                    rpcache.retro_reactions(dirname+'/input_cache/rules_rall.tsv'), 
+                    self.retro_reactions(dirname+'/input_cache/rules_rall.tsv'), 
                     open(dirname+'/cache/rr_reactions.pickle', 'wb'))
         self.rr_reactions = pickle.load(open(dirname+'/cache/rr_reactions.pickle', 'rb'))
         if not os.path.isfile(dirname+'/cache/chemXref.pickle.gz'):
-            pickle.dump(rpcache.mnx_chemXref(dirname+'/input_cache/chem_xref.tsv'), 
+            pickle.dump(self.mnx_chemXref(dirname+'/input_cache/chem_xref.tsv'), 
                     gzip.open(dirname+'/cache/chemXref.pickle.gz','wb'))
         self.chemXref = pickle.load(gzip.open(dirname+'/cache/chemXref.pickle.gz', 'rb'))
         if not os.path.isfile(dirname+'/cache/compXref.pickle.gz') or not os.path.isfile(dirname+'/cache/nameCompXref.pickle.gz'):
-            name_pubDB_xref, compName_mnxc = rpcache.mnx_compXref(dirname+'/input_cache/comp_xref.tsv')
+            name_pubDB_xref, compName_mnxc = self.mnx_compXref(dirname+'/input_cache/comp_xref.tsv')
             pickle.dump(name_pubDB_xref, gzip.open(dirname+'/cache/compXref.pickle.gz','wb'))
             pickle.dump(compName_mnxc, gzip.open(dirname+'/cache/nameCompXref.pickle.gz','wb'))
         self.compXref = pickle.load(gzip.open(dirname+'/cache/compXref.pickle.gz', 'rb'))
         self.nameCompXref = pickle.load(gzip.open(dirname+'/cache/nameCompXref.pickle.gz', 'rb'))
-        rpcache = None
         return True
 
 
