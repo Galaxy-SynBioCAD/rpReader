@@ -66,19 +66,16 @@ class RestQuery(Resource):
         rp2paths_outPaths = request.files['rp2paths_outPaths'].read()
         params = json.load(request.files['data'])
         #pass the files to the rpReader
-        '''
-        thread = Thread(target=uwsgi_rpreader, args=(rp2paths_compounds,
-                                                     rp2_scope,
-                                                     rp2paths_outPaths,
-                                                     None,
-                                                     int(params['maxRuleIds']),
-                                                     params['path_id'],
-                                                     params['compartment_id'])
-                        )
-        thread.daemon = True
-        thread.start()
-        '''
-        rpsbml_paths = uwsgi_rpreader(rp2paths_compounds,
+        rpreader = rpReader.rpReader()
+        rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
+        rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
+        rpreader.mnxm_strc = rpcache.mnxm_strc
+        rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
+        rpreader.rr_reactions = rpcache.rr_reactions
+        rpreader.chemXref = rpcache.chemXref
+        rpreader.compXref = rpcache.compXref
+        rpreader.nameCompXref = rpcache.nameCompXref
+        rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
                                       rp2_scope,
                                       rp2paths_outPaths,
                                       None,
@@ -111,22 +108,6 @@ def uwsgi_rpreader(rp2paths_compounds,
         maxRuleIds,
         path_id,
         compartment_id):
-    rpreader = rpReader.rpReader()
-    rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
-    rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
-    rpreader.mnxm_strc = rpcache.mnxm_strc
-    rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
-    rpreader.rr_reactions = rpcache.rr_reactions
-    rpreader.chemXref = rpcache.chemXref
-    rpreader.compXref = rpcache.compXref
-    rpreader.nameCompXref = rpcache.nameCompXref
-    rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds, 
-                        rp2_scope, 
-                        rp2paths_outPaths,
-                        tmpOutputFolder,
-                        maxRuleIds,
-                        path_id,
-                        compartment_id)
     return rpsbml_paths
 
 
