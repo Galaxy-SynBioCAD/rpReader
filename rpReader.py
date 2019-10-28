@@ -643,7 +643,7 @@ class rpReader:
             maxRuleIds=10, 
             pathway_id='rp_pathway', 
             compartment_id='MNXC3', 
-            mainSpecies_id='central_species'):
+            species_group_id='central_species'):
         #try:
         rp_paths = {}
         #reactions = self.rr_reactionsingleRule.split('__')[1]s
@@ -765,7 +765,7 @@ class rpReader:
                         compartment_id)
                 #2) create the pathway (groups)
                 rpsbml.createPathway(pathway_id)
-                rpsbml.createPathway(mainSpecies_id)
+                rpsbml.createPathway(species_group_id)
                 #3) find all the unique species and add them to the model
                 all_meta = set([i for step in steps for lr in ['left', 'right'] for i in step[lr]])
                 for meta in all_meta:
@@ -802,7 +802,7 @@ class rpReader:
                             spe_inchi,
                             spe_inchikey,
                             spe_smiles,
-                            mainSpecies_id)
+                            species_group_id)
                 #4) add the complete reactions and their annotations
                 for step in steps:
                     #add the substep to the model
@@ -883,7 +883,7 @@ class rpReader:
     # @param colJson Dictionnary of 
     #  @return rpsbml.document the SBML document
     #TODO: update this to include _hdd parsing
-    def jsonToSBML(self, collJson, pathway_id='rp_pathway', compartment_id='MNXC3', mainSpecies_id='central_species'):
+    def jsonToSBML(self, collJson, pathway_id='rp_pathway', compartment_id='MNXC3', species_group_id='central_species'):
         #global parameters used for all parameters
         pathNum = 1
         rp_paths = {}
@@ -1052,7 +1052,7 @@ class rpReader:
                         compartment_id)
                 #2) create the pathway (groups)
                 rpsbml.createPathway(pathway_id)
-                rpsbml.createPathway(mainSpecies_id)
+                rpsbml.createPathway(species_group_id)
                 #3) find all the unique species and add them to the model
                 meta_to_cid = {}
                 for meta in species_list[pathNum]:
@@ -1103,7 +1103,7 @@ class rpReader:
                             spe_inchi,
                             spe_inchikey,
                             spe_smiles,
-                            mainSpecies_id)
+                            species_group_id)
                 #4) add the reactions and their annotations
                 for step in steps:
                     #add the substep to the model
@@ -1306,7 +1306,7 @@ class rpReader:
             tmpOutputFolder=None, 
             compartment_id='MNXC3', 
             pathway_id='rp_pathway', 
-            mainSpecies_id='central_species'):
+            species_group_id='central_species'):
         data = self.parseValidation(inFile)
         sbml_paths = {}
         #TODO: need to exit at this loop
@@ -1327,7 +1327,7 @@ class rpReader:
             #find all the chemical species and add them to an SBML
             #2) create the pathway (groups)
             rpsbml.createPathway(pathway_id)
-            rpsbml.createPathway(mainSpecies_id)
+            rpsbml.createPathway(species_group_id)
             #3) find all the unique species and add them to the model
             allChem = []
             for stepNum in data[path_id]['steps']:
@@ -1389,7 +1389,7 @@ class rpReader:
                         spe_inchi,
                         spe_inchikey,
                         spe_smiles,
-                        mainSpecies_id)
+                        species_group_id)
             #4) add the complete reactions and their annotations
             #create a new group for the measured pathway
             #need to convert the validation to step for reactions
