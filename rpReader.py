@@ -379,11 +379,6 @@ class rpCache:
         return name_pubDB_xref, compName_mnxc
 
 
-
-#WARNING: if you define inputPath, then all the files must have specific names to
-#make sure that it can find the appropriate files
-
-
 ## Class to read all the input files
 #
 # Contains all the functions that read the cache files and input files to reconstruct the heterologous pathways
@@ -555,6 +550,7 @@ class rpReader:
     ############################ RP2paths entry functions #########
     ###############################################################
 
+
     ## Function to parse the compounds.txt file
     #
     #  Extract the smile and the structure of each compounds of RP2Path output
@@ -639,16 +635,24 @@ class rpReader:
     #  @param path The out_path.csv file path
     #  @maxRuleId maximal numer of rules associated with a step
     #  @return toRet_rp_paths Pathway object
-    def outPathsToSBML(self, rp_strc, rp_transformation, path, tmpOutputFolder=None, maxRuleIds=10, pathId='rp_pathway', compartment_id='MNXC3', species_group_id='main_species'):
+    def outPathsToSBML(self, 
+            rp_strc, 
+            rp_transformation, 
+            rp2paths_outPath, 
+            tmpOutputFolder=None, 
+            maxRuleIds=10, 
+            pathway_id='rp_pathway', 
+            compartment_id='MNXC3', 
+            mainSpecies_id='central_species'):
         #try:
         rp_paths = {}
         #reactions = self.rr_reactionsingleRule.split('__')[1]s
         #with open(path, 'r') as f:
         #### we might pass binary in the REST version
-        if isinstance(path, bytes):
-            reader = csv.reader(io.StringIO(path.decode('utf-8')))
+        if isinstance(rp2paths_outPath, bytes):
+            reader = csv.reader(io.StringIO(rp2paths_outPath.decode('utf-8')))
         else:
-            reader = csv.reader(open(path, 'r'))
+            reader = csv.reader(open(rp2paths_outPath, 'r'))
         next(reader)
         current_path_id = 0
         path_step = 1
@@ -733,10 +737,6 @@ class rpReader:
                 rp_paths[int(row[0])][int(path_step)][int(sub_path_step)] = tmpReac
                 #rp_paths[int(row[0])][int(path_step)] = tmpReac
                 sub_path_step += 1
-        #except (TypeError, FileNotFoundError) as e:
-        #    self.logger.error(e)
-        #    self.logger.error('Could not read the out_paths file ('+str(path)+') ')
-        #    return {}
         #### pathToSBML ####
         #self.rp_paths = rp_paths
         try:
@@ -750,12 +750,6 @@ class rpReader:
             #first level is the list of lists of sub_steps
             #second is itertools all possible combinations using product
             altPathNum = 1
-            #for comb_path in list(itertools.product(*[[y for y in self.rp_paths[pathNum][i]] for i in self.rp_paths[pathNum]])):
-            #for comb_path in list(itertools.product(*[[y for y in rp_paths[pathNum][i]] for i in rp_paths[pathNum]])):
-            #    steps = []
-            #    for i in range(len(comb_path)):
-            #        #steps.append(self.rp_paths[pathNum][i+1][comb_path[i]])
-            #        steps.append(rp_paths[pathNum][i+1][comb_path[i]])
             for comb_path in list(itertools.product(*[[(i,y) for y in rp_paths[pathNum][i]] for i in rp_paths[pathNum]])):
                 steps = []
                 for i, y in comb_path:
@@ -770,7 +764,8 @@ class rpReader:
                         self.compXref[mnxc],
                         compartment_id)
                 #2) create the pathway (groups)
-                rpsbml.createPathway(pathId)
+                rpsbml.createPathway(pathway_id)
+                rpsbml.createPathway(mainSpecies_id)
                 #3) find all the unique species and add them to the model
                 all_meta = set([i for step in steps for lr in ['left', 'right'] for i in step[lr]])
                 for meta in all_meta:
@@ -807,7 +802,7 @@ class rpReader:
                             spe_inchi,
                             spe_inchikey,
                             spe_smiles,
-                            species_group_id)
+                            mainSpecies_id)
                 #4) add the complete reactions and their annotations
                 for step in steps:
                     #add the substep to the model
@@ -818,8 +813,10 @@ class rpReader:
                             step,
                             compartment_id,
                             rp_transformation[step['transformation_id']]['rule'],
-                            rp_transformation[step['transformation_id']]['ec'])
-                    #5) adding the consumption of the target
+                            rp_transformation[step['transformation_id']]['ec'],
+                            {},
+                            pathway_id)
+                #5) adding the consumption of the target
                 targetStep = {'rule_id': None, 
                         'left': {[i for i in all_meta if i[:6]=='TARGET'][0]: 1}, 
                         'right': [], 
@@ -828,14 +825,14 @@ class rpReader:
                         'path_id': None, 
                         'transformation_id': None, 
                         'rule_score': None, 
-                        'mnxr': None}
-                rpsbml.createReaction('targetSink',
+                        'mnxr': None} 
+                rpsbml.createReaction('RP1_sink',
                         'B_999999',
                         'B_0',
                         targetStep,
                         compartment_id)
                 #6) Optional?? Add the flux objectives. Could be in another place, TBD
-                rpsbml.createFluxObj('rpFBA_obj', 'targetSink', 1, True)
+                rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
                 if tmpOutputFolder:
                     rpsbml.writeSBML(tmpOutputFolder)
                 else:
@@ -860,11 +857,11 @@ class rpReader:
                   outPaths, 
                   tmpOutputFolder=None, 
                   maxRuleIds=10, 
-                  pathId='rp_pathway', 
+                  pathway_id='rp_pathway', 
                   compartment_id='MNXC3'):
         rp_strc = self.compounds(compounds)
         rp_transformation = self.transformation(scope)
-        return self.outPathsToSBML(rp_strc, rp_transformation, outPaths, tmpOutputFolder, maxRuleIds, pathId, compartment_id)
+        return self.outPathsToSBML(rp_strc, rp_transformation, outPaths, tmpOutputFolder, maxRuleIds, pathway_id, compartment_id)
 
 
     #######################################################################
@@ -886,7 +883,7 @@ class rpReader:
     # @param colJson Dictionnary of 
     #  @return rpsbml.document the SBML document
     #TODO: update this to include _hdd parsing
-    def jsonToSBML(self, collJson, pathId='rp_pathway', compartment_id='MNXC3', species_group_id='main_species'):
+    def jsonToSBML(self, collJson, pathway_id='rp_pathway', compartment_id='MNXC3', mainSpecies_id='central_species'):
         #global parameters used for all parameters
         pathNum = 1
         rp_paths = {}
@@ -1044,7 +1041,6 @@ class rpReader:
                 steps = []
                 for i, y in comb_path:
                     steps.append(rp_paths[pathNum][i][y])
-                #print(steps)
                 path_id = steps[0]['path_id']
                 rpsbml = rpSBML.rpSBML('rp_'+str(path_id)+'_'+str(altPathNum))
                 #1) create a generic Model, ie the structure and unit definitions that we will use the most
@@ -1055,7 +1051,8 @@ class rpReader:
                         self.compXref[mnxc],
                         compartment_id)
                 #2) create the pathway (groups)
-                rpsbml.createPathway(pathId)
+                rpsbml.createPathway(pathway_id)
+                rpsbml.createPathway(mainSpecies_id)
                 #3) find all the unique species and add them to the model
                 meta_to_cid = {}
                 for meta in species_list[pathNum]:
@@ -1106,7 +1103,7 @@ class rpReader:
                             spe_inchi,
                             spe_inchikey,
                             spe_smiles,
-                            species_group_id)
+                            mainSpecies_id)
                 #4) add the reactions and their annotations
                 for step in steps:
                     #add the substep to the model
@@ -1126,7 +1123,9 @@ class rpReader:
                             step,
                             compartment_id,
                             reac_smiles[pathNum][step['rule_id']],
-                            reac_ecs[pathNum][step['rule_id']])
+                            reac_ecs[pathNum][step['rule_id']],
+                            {},
+                            pathway_id)
                 #5) adding the consumption of the target
                 targetStep = {'rule_id': None, 
                         'left': {source_cid[pathNum]: source_stochio[pathNum]}, 
@@ -1137,13 +1136,13 @@ class rpReader:
                         'transformation_id': None, 
                         'rule_score': None, 
                         'mnxr': None}
-                rpsbml.createReaction('targetSink',
+                rpsbml.createReaction('RP1_sink',
                         'B_999999',
                         'B_0',
                         targetStep,
                         compartment_id)
                 #6) Optional?? Add the flux objectives. Could be in another place, TBD
-                rpsbml.createFluxObj('rpFBA_obj', 'targetSink', 1, True)
+                rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
                 sbml_paths['rp_'+str(step['path_id'])+'_'+str(altPathNum)] = rpsbml
                 altPathNum += 1
 
@@ -1166,7 +1165,7 @@ class rpReader:
         data = {}
         try:
             for row in csv.DictReader(open(inFile), delimiter='\t'):
-                ######## pathId ######
+                ######## path_id ######
                 try:
                     pathID = int(row['pathway_ID'])
                 except ValueError:
@@ -1284,15 +1283,15 @@ class rpReader:
             return toRet
         else:
             toRetTwo = {}
-            for pathId in toRet:
+            for path_id in toRet:
                 try:
-                    final_pro_mnx = toRet[pathId]['steps'][max(toRet[pathId]['steps'])]['products'][0]['dbref']['mnx'][0]
+                    final_pro_mnx = toRet[path_id]['steps'][max(toRet[path_id]['steps'])]['products'][0]['dbref']['mnx'][0]
                 except KeyError:
-                    self.logger.error('The species '+str(toRet[pathId]['steps'][max(toRet[pathId]['steps'])]['products'][0]['name'])+' does not contain a mnx database reference... skipping whole pathway number '+str(pathId))
+                    self.logger.error('The species '+str(toRet[path_id]['steps'][max(toRet[path_id]['steps'])]['products'][0]['name'])+' does not contain a mnx database reference... skipping whole pathway number '+str(path_id))
                     continue
                 if not final_pro_mnx in toRetTwo:
                     toRetTwo[final_pro_mnx] = {}
-                toRetTwo[final_pro_mnx][pathId] = toRet[pathId]
+                toRetTwo[final_pro_mnx][path_id] = toRet[path_id]
             return toRetTwo
 
 
@@ -1303,7 +1302,11 @@ class rpReader:
     # @param self Object pointer
     # @param inFile Input file
     # @param compartment_id compartment of the
-    def validationToSBML(self, inFile, tmpOutputFolder=None, compartment_id='MNXC3', species_group_id='main_species'):
+    def validationToSBML(self, inFile, 
+            tmpOutputFolder=None, 
+            compartment_id='MNXC3', 
+            pathway_id='rp_pathway', 
+            mainSpecies_id='central_species'):
         data = self.parseValidation(inFile)
         sbml_paths = {}
         #TODO: need to exit at this loop
@@ -1323,7 +1326,8 @@ class rpReader:
                                 compartment_id)
             #find all the chemical species and add them to an SBML
             #2) create the pathway (groups)
-            rpsbml.createPathway(path_id)
+            rpsbml.createPathway(pathway_id)
+            rpsbml.createPathway(mainSpecies_id)
             #3) find all the unique species and add them to the model
             allChem = []
             for stepNum in data[path_id]['steps']:
@@ -1385,8 +1389,9 @@ class rpReader:
                         spe_inchi,
                         spe_inchikey,
                         spe_smiles,
-                        species_group_id)
+                        mainSpecies_id)
             #4) add the complete reactions and their annotations
+            #create a new group for the measured pathway
             #need to convert the validation to step for reactions
             for stepNum in data[path_id]['steps']:
                 toSend = {'left': {}, 'right': {}, 'rule_id': None, 'mnxr': None, 'rule_score': None, 'path_id': path_id, 'step': stepNum, 'sub_step': None}
@@ -1411,7 +1416,9 @@ class rpReader:
                         toSend,
                         compartment_id,
                         None,
-                        data[path_id]['steps'][stepNum]['ec_numbers'])
+                        data[path_id]['steps'][stepNum]['ec_numbers'],
+                        {},
+                        pathway_id)
             rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
             if tmpOutputFolder:
                 rpsbml.writeSBML(tmpOutputFolder)
@@ -1422,45 +1429,6 @@ class rpReader:
         else:
             return sbml_paths
 
-
-    """
-    #TODO: move this to another place
-
-    ## Generate the sink from a given model and the
-    #
-    # NOTE: this only works for MNX models, since we are parsing the id
-    # TODO: change this to read the annotations and extract the MNX id's
-    #
-    def genSink(self, rpsbml, file_out, compartment_id='MNXC3'):
-        ### open the cache ###
-        cytoplasm_species = []
-        for i in rpsbml.model.getListOfSpecies():
-            if i.getCompartment()==compartment_id:
-                cytoplasm_species.append(i)
-        count = 0
-        with open(file_out, mode='w') as f:
-            writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
-            writer.writerow(['Name','InChI'])
-            for i in cytoplasm_species:
-                res = rpsbml.readMIRIAMAnnotation(i.getAnnotation())
-                #extract the MNX id's
-                try:
-                    mnx = res['metanetx'][0]
-                except KeyError:
-                    continue
-                #mnx = i.getId().split('__')[0]
-                try:
-                    inchi = self.mnxm_strc[mnx]['inchi']
-                except KeyError:
-                    inchi = None
-                if mnx and inchi:
-                    writer.writerow([mnx,inchi])
-                    count += 1
-        if count==0:
-            return False
-        else:
-            return True
-    """
 
 if __name__== "__main__":
     rpReader()
