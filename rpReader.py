@@ -639,7 +639,7 @@ class rpReader:
     #  @param path The out_path.csv file path
     #  @maxRuleId maximal numer of rules associated with a step
     #  @return toRet_rp_paths Pathway object
-    def outPathsToSBML(self, rp_strc, rp_transformation, path, tmpOutputFolder=None, maxRuleIds=10, pathId='rp_pathway', compartment_id='MNXC3'):
+    def outPathsToSBML(self, rp_strc, rp_transformation, path, tmpOutputFolder=None, maxRuleIds=10, pathId='rp_pathway', compartment_id='MNXC3', species_group_id='main_species'):
         #try:
         rp_paths = {}
         #reactions = self.rr_reactionsingleRule.split('__')[1]s
@@ -807,7 +807,7 @@ class rpReader:
                             spe_inchi,
                             spe_inchikey,
                             spe_smiles,
-                            True)
+                            species_group_id)
                 #4) add the complete reactions and their annotations
                 for step in steps:
                     #add the substep to the model
@@ -886,7 +886,7 @@ class rpReader:
     # @param colJson Dictionnary of 
     #  @return rpsbml.document the SBML document
     #TODO: update this to include _hdd parsing
-    def jsonToSBML(self, collJson, pathId='rp_pathway', compartment_id='MNXC3'):
+    def jsonToSBML(self, collJson, pathId='rp_pathway', compartment_id='MNXC3', species_group_id='main_species'):
         #global parameters used for all parameters
         pathNum = 1
         rp_paths = {}
@@ -1106,7 +1106,7 @@ class rpReader:
                             spe_inchi,
                             spe_inchikey,
                             spe_smiles,
-                            True)
+                            species_group_id)
                 #4) add the reactions and their annotations
                 for step in steps:
                     #add the substep to the model
@@ -1303,7 +1303,7 @@ class rpReader:
     # @param self Object pointer
     # @param inFile Input file
     # @param compartment_id compartment of the
-    def validationToSBML(self, inFile, tmpOutputFolder=None, compartment_id='MNXC3'):
+    def validationToSBML(self, inFile, tmpOutputFolder=None, compartment_id='MNXC3', species_group_id='main_species'):
         data = self.parseValidation(inFile)
         sbml_paths = {}
         #TODO: need to exit at this loop
@@ -1385,7 +1385,7 @@ class rpReader:
                         spe_inchi,
                         spe_inchikey,
                         spe_smiles,
-                        True)
+                        species_group_id)
             #4) add the complete reactions and their annotations
             #need to convert the validation to step for reactions
             for stepNum in data[path_id]['steps']:
