@@ -25,10 +25,11 @@ RUN wget https://retrorules.org/dl/this/is/not/a/secret/path/rr02 -O /home/rr02_
     rm -r /home/rr02_more_data && \
     rm /home/rr02_more_data.tar.gz
 
-
 COPY rpReader.py /home/
 COPY rpCache.py /home/
 COPY rp2ReaderServe.py /home/
+
+RUN python /home/rpCache.py
 
 ENTRYPOINT ["python"]
 CMD ["/home/rp2ReaderServe.py"]

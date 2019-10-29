@@ -11,7 +11,7 @@ docker build -t brsynth/rpfba -f Dockerfile .
 Run the service
 
 ```
-docker run --network host -p 8994:8994 brsynth/rpfba
+docker run --network host -p 8997:8997 brsynth/rpfba
 ```
 
 ## Contributing

@@ -463,3 +463,7 @@ class rpCache:
             self.logger.error('compXref file not found')
             return {}
         return name_pubDB_xref, compName_mnxc
+
+
+if __name__ == "__main__":
+    rpcache = rpCache()
