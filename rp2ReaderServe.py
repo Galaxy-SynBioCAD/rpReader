@@ -31,7 +31,6 @@ api = Api(app)
 #TODO: test passing the parameters directly
 #rpreader = rpReader.rpReader()
 rpcache = rpCache.rpCache()
-rpcache._loadCache()
 
 def stamp(data, status=1):
     appinfo = {'app': 'rpReader', 'version': '1.0', 
