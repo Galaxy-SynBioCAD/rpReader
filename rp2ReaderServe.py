@@ -15,9 +15,6 @@ sys.path.insert(0, '/home/')
 import rpReader
 import rpCache
 
-#from threading import Thread
-from uwsgidecorators import thread
-#from tasks import threaded_task, uwsgi_task, spool_task, uwsgi_tasks_task
 
 ##############################################
 ################### REST #####################
@@ -98,17 +95,6 @@ class RestQuery(Resource):
         outputTar.seek(0)
         #######################
         return send_file(outputTar, as_attachment=True, attachment_filename='rpReader.tar', mimetype='application/x-tar')
-
-
-@thread
-def uwsgi_rpreader(rp2paths_compounds,
-        rp2_scope,
-        rp2paths_outPaths,
-        tmpOutputFolder,
-        maxRuleIds,
-        path_id,
-        compartment_id):
-    return rpsbml_paths
 
 
 api.add_resource(RestApp, '/REST')
