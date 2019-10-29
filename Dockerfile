@@ -3,8 +3,9 @@ FROM brsynth/rpbase
 RUN apt-get install --quiet --yes --no-install-recommends \ 
 	libxext6  \
     	libxrender-dev  && \
-    conda install -y -c rdkit rdkit && \
-    conda install -c conda-forge flask-restful && \
+    #conda install -y -c rdkit rdkit && \
+    #conda install -c conda-forge flask-restful && \
+    pip install gunicorn flask && \
     mkdir input_cache && \
     wget https://www.metanetx.org/cgi-bin/mnxget/mnxref/chem_xref.tsv -P /home/input_cache/ && \
     wget https://www.metanetx.org/cgi-bin/mnxget/mnxref/reac_xref.tsv -P /home/input_cache/ && \
