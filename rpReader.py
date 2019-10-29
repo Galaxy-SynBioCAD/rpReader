@@ -963,7 +963,3 @@ class rpReader:
             return {}
         else:
             return sbml_paths
-
-
-if __name__== "__main__":
-    rpReader()
