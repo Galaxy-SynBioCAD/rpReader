@@ -27,6 +27,7 @@ RUN wget https://retrorules.org/dl/this/is/not/a/secret/path/rr02 -O /home/rr02_
 
 
 COPY rpReader.py /home/
+COPY rpCache.py /home/
 COPY rp2ReaderServe.py /home/
 
 ENTRYPOINT ["python"]
