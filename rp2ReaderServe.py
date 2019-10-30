@@ -54,13 +54,13 @@ class RestApp(Resource):
 ## RetroPath2.0 reader for local packages
 #
 #
-def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, maxRuleIds, path_id, compartment_id, outputTar):
+def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, maxRuleIds, pathway_id, compartment_id, outputTar):
     rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
                         rp2_scope,
                         rp2paths_outPaths,
                         None,
                         maxRuleIds,
-                        path_id,
+                        pathway_id,
                         compartment_id)
     #pass the SBML results to a tar
     if rpsbml_paths=={}:
@@ -79,7 +79,7 @@ def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, ma
 ## RetroPath2.0 reader for local packages
 #
 #
-def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, maxRuleIds, path_id, compartment_id, outputTar):
+def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, maxRuleIds, pathway_id, compartment_id, outputTar):
     if not os.path.exists(os.getcwd()+'/tmp'):
         os.mkdir(os.getcwd()+'/tmp')
     tmpOutputFolder = os.getcwd()+'/tmp/'+''.join(random.choice(string.ascii_lowercase) for i in range(15))
@@ -90,7 +90,7 @@ def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, ma
                                       rp2paths_outPaths,
                                       tmpOutputFolder,
                                       maxRuleIds,
-                                      path_id,
+                                      pathway_id,
                                       compartment_id)
 	if rpsbml_paths=={}:
 		return False
@@ -134,7 +134,7 @@ class RestQuery(Resource):
 					rp2_scope, 
 					rp2paths_outPaths, 
 					int(params['maxRuleIds']), 
-					params['path_id'], 
+					params['pathway_id'], 
 					params['compartment_id'], 
 					outputTar):
 			flask.abort(204)
@@ -145,7 +145,7 @@ class RestQuery(Resource):
 					rp2_scope,
 					rp2paths_outPaths,
 					int(params['maxRuleIds']),
-					params['path_id'],
+					params['pathway_id'],
 					params['compartment_id'],
 					outputTar):
 			flask.abort(204)
