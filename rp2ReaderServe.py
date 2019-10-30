@@ -101,5 +101,4 @@ api.add_resource(RestQuery, '/REST/Query')
 
 
 if __name__== "__main__":
-    #debug = os.getenv('USER') == 'mdulac'
     app.run(host="0.0.0.0", port=8997, debug=True, threaded=True)
