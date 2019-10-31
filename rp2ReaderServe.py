@@ -12,6 +12,7 @@ import tarfile
 import libsbml
 import random
 import string
+import glob
 
 sys.path.insert(0, '/home/')
 import rpReader
