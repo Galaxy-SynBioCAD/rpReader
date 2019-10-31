@@ -64,7 +64,7 @@ def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, ma
                         compartment_id)
     #pass the SBML results to a tar
     if rpsbml_paths=={}:
-		return False
+        return False
     #outputTar = io.BytesIO()
     #with open(outputTar, 'w:xz') as tf:
     with tarfile.open(fileobj=outputTar, mode='w:xz') as tf:
@@ -74,7 +74,7 @@ def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, ma
             info = tarfile.TarInfo(name=rpsbml_name)
             info.size = len(data)
             tf.addfile(tarinfo=info, fileobj=fiOut)
-	return True
+    return True
 
 ## RetroPath2.0 reader for local packages
 #
@@ -92,8 +92,8 @@ def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, ma
                                       maxRuleIds,
                                       pathway_id,
                                       compartment_id)
-	if rpsbml_paths=={}:
-		return False
+    if rpsbml_paths=={}:
+        return False
     with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
         for sbml_path in glob.glob(tmpOutputFolder+'/*'):
             fileName = str(sbml_path.split('/')[-1].replace('.sbml', ''))
@@ -101,7 +101,7 @@ def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, ma
             info.size = os.path.getsize(sbml_path)
             ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
     shutil.rmtree(tmpOutputFolder)
-	return True
+    return True
 
 
 
@@ -127,28 +127,28 @@ class RestQuery(Resource):
         rpreader.compXref = rpcache.compXref
         rpreader.nameCompXref = rpcache.nameCompXref
         outputTar = io.BytesIO()
-		#### MEM #####
-		"""
-		if not rp2Reader_mem(rpreader, 
-					rp2paths_compounds, 
-					rp2_scope, 
-					rp2paths_outPaths, 
-					int(params['maxRuleIds']), 
-					params['pathway_id'], 
-					params['compartment_id'], 
-					outputTar):
-			flask.abort(204)
-		"""
-		#### HDD #####
+        #### MEM #####
+        """
+        if not rp2Reader_mem(rpreader, 
+                    rp2paths_compounds, 
+                    rp2_scope, 
+                    rp2paths_outPaths, 
+                    int(params['maxRuleIds']), 
+                    params['pathway_id'], 
+                    params['compartment_id'], 
+                    outputTar):
+            flask.abort(204)
+        """
+        #### HDD #####
         if not rp2Reader_hdd(rpreader,
-					rp2paths_compounds,
-					rp2_scope,
-					rp2paths_outPaths,
-					int(params['maxRuleIds']),
-					params['pathway_id'],
-					params['compartment_id'],
-					outputTar):
-			flask.abort(204)
+                    rp2paths_compounds,
+                    rp2_scope,
+                    rp2paths_outPaths,
+                    int(params['maxRuleIds']),
+                    params['pathway_id'],
+                    params['compartment_id'],
+                    outputTar):
+            flask.abort(204)
         ########IMPORTANT######
         outputTar.seek(0)
         #######################
