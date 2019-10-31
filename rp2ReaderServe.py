@@ -10,6 +10,8 @@ import sys
 import io
 import tarfile
 import libsbml
+import random
+import string
 
 sys.path.insert(0, '/home/')
 import rpReader
@@ -92,7 +94,7 @@ def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, ma
                                       maxRuleIds,
                                       pathway_id,
                                       compartment_id)
-    if rpsbml_paths=={}:
+    if len(glob.glob(tmpOutputFolder+'/*'))==1:
         return False
     with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
         for sbml_path in glob.glob(tmpOutputFolder+'/*'):
@@ -137,7 +139,7 @@ class RestQuery(Resource):
                     params['pathway_id'], 
                     params['compartment_id'], 
                     outputTar):
-            flask.abort(204)
+            abort(204)
         """
         #### HDD #####
         if not rp2Reader_hdd(rpreader,
@@ -148,7 +150,7 @@ class RestQuery(Resource):
                     params['pathway_id'],
                     params['compartment_id'],
                     outputTar):
-            flask.abort(204)
+            abort(204)
         ########IMPORTANT######
         outputTar.seek(0)
         #######################
