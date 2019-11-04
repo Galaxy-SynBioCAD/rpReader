@@ -33,9 +33,9 @@ class rpCache:
     # @param self The object pointer
     # @param inputPath The path to the folder that contains all the input/output files required
     def __init__(self):
-        #given by Thomas
         self.logger = logging.getLogger(__name__)
         self.logger.info('Started instance of rpCache')
+        #given by Thomas
         self.convertMNXM = {'MNXM162231': 'MNXM6',
                 'MNXM84': 'MNXM15',
                 'MNXM96410': 'MNXM14',
@@ -463,3 +463,7 @@ class rpCache:
             self.logger.error('compXref file not found')
             return {}
         return name_pubDB_xref, compName_mnxc
+
+
+if __name__ == "__main__":
+    rpcache = rpCache()
