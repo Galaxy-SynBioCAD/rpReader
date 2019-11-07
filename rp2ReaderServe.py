@@ -1,6 +1,4 @@
 import os
-import uuid
-import shutil
 import json
 from datetime import datetime
 from flask import Flask, request, jsonify, send_file, abort
@@ -10,14 +8,12 @@ import sys
 import io
 import tarfile
 import libsbml
-import random
-import string
 import glob
+import tempfile
 
 sys.path.insert(0, '/home/')
 import rpReader
 import rpCache
-
 
 ##############################################
 ################### REST #####################
@@ -36,10 +32,10 @@ api = Api(app)
 rpcache = rpCache.rpCache()
 
 def stamp(data, status=1):
-    appinfo = {'app': 'rpReader', 'version': '1.0', 
+    appinfo = {'app': 'rpReader', 'version': '1.0',
                'author': 'Melchior du Lac',
                'organization': 'BRS',
-               'time': datetime.now().isoformat(), 
+               'time': datetime.now().isoformat(),
                'status': status}
     out = appinfo.copy()
     out['data'] = data
@@ -57,10 +53,10 @@ class RestApp(Resource):
 ## RetroPath2.0 reader for local packages
 #
 #
-def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, maxRuleIds, pathway_id, compartment_id, outputTar):
+def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_scope, rp2paths_pathways, maxRuleIds, pathway_id, compartment_id, outputTar):
     rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
                         rp2_scope,
-                        rp2paths_outPaths,
+                        rp2paths_pathways,
                         None,
                         maxRuleIds,
                         pathway_id,
@@ -79,34 +75,30 @@ def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, ma
             tf.addfile(tarinfo=info, fileobj=fiOut)
     return True
 
+
 ## RetroPath2.0 reader for local packages
 #
 #
-def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_scope, rp2paths_outPaths, maxRuleIds, pathway_id, compartment_id, outputTar):
-    if not os.path.exists(os.getcwd()+'/tmp'):
-        os.mkdir(os.getcwd()+'/tmp')
-    tmpOutputFolder = os.getcwd()+'/tmp/'+''.join(random.choice(string.ascii_lowercase) for i in range(15))
-    os.mkdir(tmpOutputFolder)
-    #Note the return here is {} and thus we can ignore it
-    rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
-                                      rp2_scope,
-                                      rp2paths_outPaths,
-                                      tmpOutputFolder,
-                                      maxRuleIds,
-                                      pathway_id,
-                                      compartment_id)
-    if len(glob.glob(tmpOutputFolder+'/*'))==1:
-        return False
-    with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
-        for sbml_path in glob.glob(tmpOutputFolder+'/*'):
-            fileName = str(sbml_path.split('/')[-1].replace('.sbml', ''))
-            info = tarfile.TarInfo(fileName)
-            info.size = os.path.getsize(sbml_path)
-            ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
-    shutil.rmtree(tmpOutputFolder)
+def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_scope, rp2paths_pathways, maxRuleIds, pathway_id, compartment_id, outputTar):
+    with tempfile.TemporaryDirectory() as tmpOutputFolder:
+        #Note the return here is {} and thus we can ignore it
+        rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
+                                          rp2_scope,
+                                          rp2paths_pathways,
+                                          tmpOutputFolder,
+                                          maxRuleIds,
+                                          pathway_id,
+                                          compartment_id)
+        if len(glob.glob(tmpOutputFolder+'/*'))==1:
+            return False
+        with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
+            for sbml_path in glob.glob(tmpOutputFolder+'/*'):
+                fileName = str(sbml_path.split('/')[-1].replace('.sbml', ''))
+                fileName += '.sbml.xml'
+                info = tarfile.TarInfo(fileName)
+                info.size = os.path.getsize(sbml_path)
+                ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
     return True
-
-
 
 
 class RestQuery(Resource):
@@ -114,12 +106,12 @@ class RestQuery(Resource):
         Avoid returning numpy or pandas object in
         order to keep the client lighter.
     """
-    def post(self):       
+    def post(self):
         rp2paths_compounds = request.files['rp2paths_compounds'].read()
         rp2_scope = request.files['rp2_scope'].read()
-        rp2paths_outPaths = request.files['rp2paths_outPaths'].read()
+        rp2paths_pathways = request.files['rp2paths_pathways'].read()
         params = json.load(request.files['data'])
-        #pass the files to the rpReader
+        #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
         rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
         rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
@@ -132,13 +124,13 @@ class RestQuery(Resource):
         outputTar = io.BytesIO()
         #### MEM #####
         """
-        if not rp2Reader_mem(rpreader, 
-                    rp2paths_compounds, 
-                    rp2_scope, 
-                    rp2paths_outPaths, 
-                    int(params['maxRuleIds']), 
-                    params['pathway_id'], 
-                    params['compartment_id'], 
+        if not rp2Reader_mem(rpreader,
+                    rp2paths_compounds,
+                    rp2_scope,
+                    rp2paths_pathways,
+                    int(params['maxRuleIds']),
+                    params['pathway_id'],
+                    params['compartment_id'],
                     outputTar):
             abort(204)
         """
@@ -146,7 +138,7 @@ class RestQuery(Resource):
         if not rp2Reader_hdd(rpreader,
                     rp2paths_compounds,
                     rp2_scope,
-                    rp2paths_outPaths,
+                    rp2paths_pathways,
                     int(params['maxRuleIds']),
                     params['pathway_id'],
                     params['compartment_id'],
