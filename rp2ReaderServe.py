@@ -53,9 +53,9 @@ class RestApp(Resource):
 ## RetroPath2.0 reader for local packages
 #
 #
-def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_scope, rp2paths_pathways, maxRuleIds, pathway_id, compartment_id, outputTar):
+def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways, maxRuleIds, pathway_id, compartment_id, outputTar):
     rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
-                        rp2_scope,
+                        rp2_pathways,
                         rp2paths_pathways,
                         None,
                         maxRuleIds,
@@ -79,11 +79,11 @@ def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_scope, rp2paths_pathways, ma
 ## RetroPath2.0 reader for local packages
 #
 #
-def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_scope, rp2paths_pathways, maxRuleIds, pathway_id, compartment_id, outputTar):
+def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways, maxRuleIds, pathway_id, compartment_id, outputTar):
     with tempfile.TemporaryDirectory() as tmpOutputFolder:
         #Note the return here is {} and thus we can ignore it
         rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
-                                          rp2_scope,
+                                          rp2_pathways,
                                           rp2paths_pathways,
                                           tmpOutputFolder,
                                           maxRuleIds,
@@ -108,7 +108,7 @@ class RestQuery(Resource):
     """
     def post(self):
         rp2paths_compounds = request.files['rp2paths_compounds'].read()
-        rp2_scope = request.files['rp2_scope'].read()
+        rp2_pathways = request.files['rp2_pathways'].read()
         rp2paths_pathways = request.files['rp2paths_pathways'].read()
         params = json.load(request.files['data'])
         #pass the cache parameters to the rpReader
@@ -126,7 +126,7 @@ class RestQuery(Resource):
         """
         if not rp2Reader_mem(rpreader,
                     rp2paths_compounds,
-                    rp2_scope,
+                    rp2_pathways,
                     rp2paths_pathways,
                     int(params['maxRuleIds']),
                     params['pathway_id'],
@@ -135,15 +135,14 @@ class RestQuery(Resource):
             abort(204)
         """
         #### HDD #####
-        if not rp2Reader_hdd(rpreader,
+        isOK = rp2Reader_hdd(rpreader,
                     rp2paths_compounds,
-                    rp2_scope,
+                    rp2_pathways,
                     rp2paths_pathways,
                     int(params['maxRuleIds']),
                     params['pathway_id'],
                     params['compartment_id'],
-                    outputTar):
-            abort(204)
+                    outputTar)
         ########IMPORTANT######
         outputTar.seek(0)
         #######################
