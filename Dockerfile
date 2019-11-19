@@ -1,4 +1,4 @@
-FROM brsynth/rpbase
+FROM brsynth/rpcache
 
 RUN conda install -c conda-forge flask-restful
 
