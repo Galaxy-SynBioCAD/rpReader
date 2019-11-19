@@ -10,8 +10,6 @@ COPY rpReader.py /home/
 COPY rpCache.py /home/
 COPY rp2ReaderServe.py /home/
 
-RUN python /home/rpCache.py
-
 ENTRYPOINT ["python"]
 CMD ["/home/rp2ReaderServe.py"]
 
