@@ -11,7 +11,7 @@ import glob
 import tempfile
 
 sys.path.insert(0, '/home/')
-import rpTool
+import rpTool as rpReader
 import rpCache
 
 ##############################################

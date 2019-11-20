@@ -8,7 +8,6 @@ import sys
 import random
 #import json
 import copy
-import urllib.request
 #from .setup_self.logger import self.logger
 import logging
 import io
@@ -170,14 +169,14 @@ class rpReader:
     #  @param path The out_path.csv file path
     #  @maxRuleId maximal numer of rules associated with a step
     #  @return toRet_rp_paths Pathway object
-    def outPathsToSBML(self, 
-            rp_strc, 
-            rp_transformation, 
-            rp2paths_outPath, 
-            tmpOutputFolder=None, 
-            maxRuleIds=10, 
-            pathway_id='rp_pathway', 
-            compartment_id='MNXC3', 
+    def outPathsToSBML(self,
+            rp_strc,
+            rp_transformation,
+            rp2paths_outPath,
+            tmpOutputFolder=None,
+            maxRuleIds=10,
+            pathway_id='rp_pathway',
+            compartment_id='MNXC3',
             species_group_id='central_species'):
         #try:
         rp_paths = {}
@@ -352,15 +351,15 @@ class rpReader:
                             {},
                             pathway_id)
                 #5) adding the consumption of the target
-                targetStep = {'rule_id': None, 
-                        'left': {[i for i in all_meta if i[:6]=='TARGET'][0]: 1}, 
-                        'right': [], 
-                        'step': None, 
-                        'sub_step': None, 
-                        'path_id': None, 
-                        'transformation_id': None, 
-                        'rule_score': None, 
-                        'mnxr': None} 
+                targetStep = {'rule_id': None,
+                        'left': {[i for i in all_meta if i[:6]=='TARGET'][0]: 1},
+                        'right': [],
+                        'step': None,
+                        'sub_step': None,
+                        'path_id': None,
+                        'transformation_id': None,
+                        'rule_score': None,
+                        'mnxr': None}
                 rpsbml.createReaction('RP1_sink',
                         'B_999999',
                         'B_0',
@@ -374,8 +373,8 @@ class rpReader:
                     sbml_paths['rp_'+str(step['path_id'])+'_'+str(altPathNum)] = rpsbml
                 altPathNum += 1
         return sbml_paths
-    
-    
+
+
     ## Function to group all the functions for parsing RP2 output to SBML files
     #
     # Takes RP2paths's compounds.txt and out_paths.csv and RetroPaths's *_scope.csv files and generates SBML
@@ -386,13 +385,13 @@ class rpReader:
     # @param maxRuleIds int The maximal number of members in a single substep (Reaction Rule)
     # @param compartment_id string The ID of the SBML's model compartment where to add the reactions to
     # @return Boolean The success or failure of the function
-    def rp2ToSBML(self, 
-                  compounds, 
-                  scope, 
-                  outPaths, 
-                  tmpOutputFolder=None, 
-                  maxRuleIds=10, 
-                  pathway_id='rp_pathway', 
+    def rp2ToSBML(self,
+                  compounds,
+                  scope,
+                  outPaths,
+                  tmpOutputFolder=None,
+                  maxRuleIds=10,
+                  pathway_id='rp_pathway',
                   compartment_id='MNXC3'):
         rp_strc = self.compounds(compounds)
         rp_transformation = self.transformation(scope)
@@ -415,7 +414,7 @@ class rpReader:
     #  WARNING: We are only using a single rule (technically with the highest diameter)
     #
     #  @param self Object pointer
-    # @param colJson Dictionnary of 
+    # @param colJson Dictionnary of
     #  @return rpsbml.document the SBML document
     #TODO: update this to include _hdd parsing
     def jsonToSBML(self, collJson, pathway_id='rp_pathway', compartment_id='MNXC3', species_group_id='central_species'):
@@ -449,12 +448,12 @@ class rpReader:
                 ##### compounds ####
                 if node['data']['type']=='compound':
                     cid_inchikey[pathNum][node['data']['id'].replace('-', '')] = node['data']['id']
-                    species_list[pathNum][node['data']['id'].replace('-', '')] = {'inchi': node['data']['InChI'], 
+                    species_list[pathNum][node['data']['id'].replace('-', '')] = {'inchi': node['data']['InChI'],
                                     'inchikey': node['data']['id'],
                                     'smiles': node['data']['SMILES']}
                     if int(node['data']['isSource'])==1:
                         #TODO: there should always be only one source, to check
-                        source_species.append(node['data']['id'].replace('-', '')) 
+                        source_species.append(node['data']['id'].replace('-', ''))
                         source_cid[pathNum] = node['data']['id'].replace('-', '')
                     if int(node['data']['inSink'])==1:
                         sink_species[pathNum][node['data']['id'].replace('-', '')] = node['data']['id']
@@ -519,7 +518,7 @@ class rpReader:
             step_num = 1
             found_rid = []
             toFind_rid = list(reactions_list[pathNum].keys())
-            for rid in reactions_list[pathNum]:    
+            for rid in reactions_list[pathNum]:
                 if all([True if i in source_species else False for i in reactions_list[pathNum][rid]['right']]):
                     reactions_list[pathNum][rid]['step'] = step_num
                     #step_num -= 1
@@ -650,7 +649,7 @@ class rpReader:
                             try:
                                 step_mnxm[meta_to_cid[meta]] = step[direc][meta]
                             except KeyError:
-                                step_mnxm[meta] = step[direc][meta] 
+                                step_mnxm[meta] = step[direc][meta]
                         step[direc] = step_mnxm
                     rpsbml.createReaction('RP'+str(step['step']),
                             'B_999999', #only for genericModel
@@ -662,14 +661,14 @@ class rpReader:
                             {},
                             pathway_id)
                 #5) adding the consumption of the target
-                targetStep = {'rule_id': None, 
-                        'left': {source_cid[pathNum]: source_stochio[pathNum]}, 
-                        'right': {}, 
-                        'step': None, 
-                        'sub_step': None, 
-                        'path_id': None, 
-                        'transformation_id': None, 
-                        'rule_score': None, 
+                targetStep = {'rule_id': None,
+                        'left': {source_cid[pathNum]: source_stochio[pathNum]},
+                        'right': {},
+                        'step': None,
+                        'sub_step': None,
+                        'path_id': None,
+                        'transformation_id': None,
+                        'rule_score': None,
                         'mnxr': None}
                 rpsbml.createReaction('RP1_sink',
                         'B_999999',
@@ -713,8 +712,8 @@ class rpReader:
                 ####### target #########
                 if not 'target' in data[pathID]:
                     data[pathID]['target'] = {}
-                    data[pathID]['target']['name'] = row['target_name'] 
-                    data[pathID]['target']['inchi'] = row['target_structure'] 
+                    data[pathID]['target']['name'] = row['target_name']
+                    data[pathID]['target']['inchi'] = row['target_structure']
                 ####### step #########
                 try:
                     stepID = int(row['step'])
@@ -837,10 +836,10 @@ class rpReader:
     # @param self Object pointer
     # @param inFile Input file
     # @param compartment_id compartment of the
-    def validationToSBML(self, inFile, 
-            tmpOutputFolder=None, 
-            compartment_id='MNXC3', 
-            pathway_id='rp_pathway', 
+    def validationToSBML(self, inFile,
+            tmpOutputFolder=None,
+            compartment_id='MNXC3',
+            pathway_id='rp_pathway',
             species_group_id='central_species'):
         data = self.parseValidation(inFile)
         sbml_paths = {}
@@ -856,8 +855,8 @@ class rpReader:
             ##### TODO: give the user more control over a generic model creation:
             #   -> special attention to the compartment
             rpsbml.genericModel('measured_'+str(path_id),
-                                'measured_'+str(path_id), 
-                                self.compXref[mnxc], 
+                                'measured_'+str(path_id),
+                                self.compXref[mnxc],
                                 compartment_id)
             #find all the chemical species and add them to an SBML
             #2) create the pathway (groups)
