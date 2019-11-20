@@ -1,1 +1,1 @@
-FROM brsynth/rpcacherest
+FROM brsynth/rpcache-rest
