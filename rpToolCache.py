@@ -5,7 +5,7 @@ import os
 import pickle
 import gzip
 import urllib.request
-
+import rpCache
 
 ## Error function for the convertion of structures
 #
@@ -29,7 +29,7 @@ class DepictionError(Error):
 #
 # Contains all the functions that parse different files, used to calculate the thermodynamics and the FBA of the
 #the other steps. These should be called only when the files have changes
-class rpReaderCache(rpCache):
+class rpToolCache(rpCache):
     ## Cache constructor
     #
     # @param self The object pointer
@@ -133,4 +133,4 @@ class rpReaderCache(rpCache):
 
 
 if __name__ == "__main__":
-    rpcache = rpReaderCache()
+    rpcache = rpToolCache()

@@ -12,7 +12,7 @@ import tempfile
 
 sys.path.insert(0, '/home/')
 import rpTool as rpReader
-import rpCache
+import rpToolCache
 
 ##############################################
 ################### REST #####################
@@ -28,7 +28,7 @@ api = Api(app)
 
 #TODO: test passing the parameters directly
 #rpreader = rpReader.rpReader()
-rpcache = rpCache.rpCache()
+rpcache = rpToolCache.rpToolCache()
 
 def stamp(data, status=1):
     appinfo = {'app': 'rpReader', 'version': '1.0',
