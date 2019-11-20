@@ -5,7 +5,7 @@ import os
 import pickle
 import gzip
 import urllib.request
-import rpCache
+from rpCache import rpCache
 
 ## Error function for the convertion of structures
 #
@@ -51,6 +51,7 @@ class rpToolCache(rpCache):
     # @param The oject pointer
     # @return Boolean detemining the success of the function or not
     def _loadCache(self, fetchInputFiles=False):
+        dirname = os.path.dirname(os.path.abspath( __file__ ))
         # comp_xref
         if not os.path.isfile(dirname+'/input_cache/comp_xref.tsv') or fetchInputFiles:
             urllib.request.urlretrieve('https://www.metanetx.org/cgi-bin/mnxget/mnxref/comp_xref.tsv',
