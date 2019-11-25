@@ -53,10 +53,10 @@ class rpToolCache(rpCache):
     def _loadCache(self, fetchInputFiles=False):
 
         dirname = os.path.dirname(os.path.abspath( __file__ ))
-        # comp_xref
-        if not os.path.isfile(dirname+'/input_cache/comp_xref.tsv') or fetchInputFiles:
-            urllib.request.urlretrieve('https://www.metanetx.org/cgi-bin/mnxget/mnxref/comp_xref.tsv',
-                    dirname+'/input_cache/comp_xref.tsv')
+        # # comp_xref
+        # if not os.path.isfile(dirname+'/input_cache/comp_xref.tsv') or fetchInputFiles:
+        #     urllib.request.urlretrieve('https://www.metanetx.org/cgi-bin/mnxget/mnxref/comp_xref.tsv',
+        #             dirname+'/input_cache/comp_xref.tsv')
 
         ###################### Populate the cache #################################
         if not os.path.isfile(dirname+'/cache/inchikey_mnxm.pickle.gz'):
