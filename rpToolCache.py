@@ -51,6 +51,7 @@ class rpToolCache(rpCache):
     # @param The oject pointer
     # @return Boolean detemining the success of the function or not
     def _loadCache(self, fetchInputFiles=False):
+
         dirname = os.path.dirname(os.path.abspath( __file__ ))
         # comp_xref
         if not os.path.isfile(dirname+'/input_cache/comp_xref.tsv') or fetchInputFiles:
