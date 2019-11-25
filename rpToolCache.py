@@ -35,6 +35,9 @@ class rpToolCache(rpCache):
     # @param self The object pointer
     # @param inputPath The path to the folder that contains all the input/output files required
     def __init__(self):
+
+        super().__init__()
+
         #given by Thomas
         self.inchikey_mnxm = None
         self.compXref = None
