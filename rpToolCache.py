@@ -64,6 +64,7 @@ class rpToolCache(rpCache):
                                       dirname+'/input_cache/chem_prop.tsv'),
                         gzip.open(dirname+'/cache/inchikey_mnxm.pickle.gz','wb'))
         self.inchikey_mnxm = pickle.load(gzip.open(dirname+'/cache/inchikey_mnxm.pickle.gz', 'rb'))
+        
         if not os.path.isfile(dirname+'/cache/inchikey_mnxm.pickle.gz'):
             inchikey_mnxm = {}
             for mnxm in self.mnxm_strc:
