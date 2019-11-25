@@ -53,10 +53,10 @@ class rpToolCache(rpCache):
     def _loadCache(self, fetchInputFiles=False):
 
         dirname = os.path.dirname(os.path.abspath( __file__ ))
-        # # comp_xref
-        # if not os.path.isfile(dirname+'/input_cache/comp_xref.tsv') or fetchInputFiles:
-        #     urllib.request.urlretrieve('https://www.metanetx.org/cgi-bin/mnxget/mnxref/comp_xref.tsv',
-        #             dirname+'/input_cache/comp_xref.tsv')
+        # comp_xref
+        if not os.path.isfile(dirname+'/input_cache/comp_xref.tsv') or fetchInputFiles:
+            urllib.request.urlretrieve('https://www.metanetx.org/cgi-bin/mnxget/mnxref/comp_xref.tsv',
+                                       dirname+'/input_cache/comp_xref.tsv')
 
         ###################### Populate the cache #################################
         if not os.path.isfile(dirname+'/cache/inchikey_mnxm.pickle.gz'):
@@ -64,7 +64,7 @@ class rpToolCache(rpCache):
                                       dirname+'/input_cache/chem_prop.tsv'),
                         gzip.open(dirname+'/cache/inchikey_mnxm.pickle.gz','wb'))
         self.inchikey_mnxm = pickle.load(gzip.open(dirname+'/cache/inchikey_mnxm.pickle.gz', 'rb'))
-        
+
         if not os.path.isfile(dirname+'/cache/inchikey_mnxm.pickle.gz'):
             inchikey_mnxm = {}
             for mnxm in self.mnxm_strc:
