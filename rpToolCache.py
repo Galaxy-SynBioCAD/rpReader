@@ -42,6 +42,7 @@ class rpToolCache(rpCache):
         self.inchikey_mnxm = None
         self.compXref = None
         self.nameCompXref = None
+        
         if not self._loadCache():
             raise KeyError
 
