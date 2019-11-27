@@ -7,19 +7,6 @@ import gzip
 import urllib.request
 from rpCache import rpCache
 
-## Error function for the convertion of structures
-#
-class Error(Exception):
-    pass
-
-
-## Error function for the convertion of structures
-#
-class DepictionError(Error):
-    def __init__(self, message):
-        #self.expression = expression
-        self.message = message
-
 
 #######################################################
 ################### rpCache  ##########################
@@ -42,7 +29,7 @@ class rpToolCache(rpCache):
         self.inchikey_mnxm = None
         self.compXref = None
         self.nameCompXref = None
-        
+
         if not self._loadCache():
             raise KeyError
 
