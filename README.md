@@ -1,42 +1,18 @@
-# Galaxy rpReader
+# rp2Reader REST service
 
-Docker image of rpReader, based on rpBase
+REST service to parse the output of RetroPath2.0 and RP2paths to output as a collection of SBML files
 
-## Getting Started
-
-The docker needs to be built locally where Galaxy instance is installed
-
-### Prerequisites
-
-TODO
-
-### Installing
-
-Build the docker image:
+## Installing
 
 ```
-docker build -t brsynth/rpreader .
+docker build -t brsynth/rpreader -f Dockerfile .
 ```
 
-## Running the tests
-
-TODO
-
-### And coding style tests
-
-Explain what these tests test and why
+Run the service
 
 ```
-Give an example
+docker run -p 8997:8997 brsynth/rpreader
 ```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Galaxy](https://galaxyproject.org) - The Galaxy project
 
 ## Contributing
 
@@ -48,7 +24,7 @@ TODO
 
 ## Authors
 
-* **Melchior du Lac** 
+* **Melchior du Lac**
 
 ## License
 
