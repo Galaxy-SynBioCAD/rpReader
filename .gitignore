@@ -1,3 +1,6 @@
 *.swp
 rpSBML.py
 __pycache__/
+cache/
+input_cache/
+test/test_output.tar

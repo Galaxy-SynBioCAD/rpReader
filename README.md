@@ -11,7 +11,7 @@ docker build -t brsynth/rpreader -f Dockerfile .
 Run the service
 
 ```
-docker run -p 8997:8997 brsynth/rpreader
+docker run -p 8888:8888 brsynth/rpreader
 ```
 
 ## Contributing
