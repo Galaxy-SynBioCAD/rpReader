@@ -74,7 +74,10 @@ class RestQuery(Resource):
         params = json.load(request.files['data'])
 
 
-def main(outputTar, maxRuleIds, compartment_id='MNXC3', pathway_id='rp_pathway'):
+##
+#
+#
+def main(outputTar, rp2paths_compounds, rp2_pathways, rp2paths_pathways, maxRuleIds, compartment_id='MNXC3', pathway_id='rp_pathway'):
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
         rpcache = rpToolCache.rpToolCache()
