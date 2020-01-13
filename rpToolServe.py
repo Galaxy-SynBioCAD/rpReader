@@ -16,12 +16,12 @@ import rpToolCache
 #
 def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways, maxRuleIds, pathway_id, compartment_id, outputTar):
     rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
-                        rp2_pathways,
-                        rp2paths_pathways,
-                        None,
-                        maxRuleIds,
-                        pathway_id,
-                        compartment_id)
+                                      rp2_pathways,
+                                      rp2paths_pathways,
+                                      None,
+                                      maxRuleIds,
+                                      pathway_id,
+                                      compartment_id)
     #pass the SBML results to a tar
     if rpsbml_paths=={}:
         return False
@@ -50,7 +50,7 @@ def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways,
                                           maxRuleIds,
                                           pathway_id,
                                           compartment_id)
-        if len(glob.glob(tmpOutputFolder+'/*'))==1:
+        if len(glob.glob(tmpOutputFolder+'/*'))==0:
             return False
         with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
             for sbml_path in glob.glob(tmpOutputFolder+'/*'):
@@ -111,6 +111,8 @@ def main(outputTar, rp2paths_compounds, rp2_pathways, rp2paths_pathways, maxRule
                              pathway_id,
                              compartment_id,
                              outputTar_bytes)
+        if not isOK:
+            logging.error('Function returned an error')
         ########IMPORTANT######
         outputTar_bytes.seek(0)
         #######################
