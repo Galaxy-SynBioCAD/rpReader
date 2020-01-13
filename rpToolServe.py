@@ -9,6 +9,7 @@ import tarfile
 import libsbml
 import glob
 import tempfile
+import logging
 
 sys.path.insert(0, '/home/')
 import rpTool as rpReader
@@ -88,7 +89,7 @@ def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways,
                                           maxRuleIds,
                                           pathway_id,
                                           compartment_id)
-        if len(glob.glob(tmpOutputFolder+'/*'))==1:
+        if len(glob.glob(tmpOutputFolder+'/*'))==0:
             return False
         with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
             for sbml_path in glob.glob(tmpOutputFolder+'/*'):
@@ -142,6 +143,8 @@ class RestQuery(Resource):
                     params['pathway_id'],
                     params['compartment_id'],
                     outputTar)
+        if not isOK:
+            logging.error('rp2Reader returned False') 
         ########IMPORTANT######
         outputTar.seek(0)
         #######################

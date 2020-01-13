@@ -4,3 +4,4 @@ __pycache__/
 cache/
 input_cache/
 test/test_output.tar
+test/results/
