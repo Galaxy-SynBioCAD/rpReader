@@ -43,7 +43,9 @@ class rpToolCache(rpCache):
     # @return Boolean detemining the success of the function or not
     def _loadCache(self, fetchInputFiles=False):
 
-        dirname = os.path.dirname(os.path.abspath( __file__ ))
+        dirname = os.path.dirname(os.path.abspath( '__file__' ))
+        if not os.path.exists(dirname+'/input_cache/'):
+            os.makedirs(dirname+'/input_cache/')
         # comp_xref
         if not os.path.isfile(dirname+'/input_cache/comp_xref.tsv') or fetchInputFiles:
             urllib.request.urlretrieve('https://www.metanetx.org/cgi-bin/mnxget/mnxref/comp_xref.tsv',

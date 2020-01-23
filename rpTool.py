@@ -366,7 +366,8 @@ class rpReader:
                         targetStep,
                         compartment_id)
                 #6) Optional?? Add the flux objectives. Could be in another place, TBD
-                rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
+                #rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
+                rpsbml.createMultiFluxObj(['rpFBA_obj'], ['RP1_sink'], 1, True)
                 if tmpOutputFolder:
                     rpsbml.writeSBML(tmpOutputFolder)
                 else:
@@ -676,7 +677,7 @@ class rpReader:
                         targetStep,
                         compartment_id)
                 #6) Optional?? Add the flux objectives. Could be in another place, TBD
-                rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
+                rpsbml.createMultiFluxObj(['rpFBA_obj'], ['RP1_sink'], 1, True)
                 sbml_paths['rp_'+str(step['path_id'])+'_'+str(altPathNum)] = rpsbml
                 altPathNum += 1
 
@@ -953,7 +954,8 @@ class rpReader:
                         data[path_id]['steps'][stepNum]['ec_numbers'],
                         {},
                         pathway_id)
-            rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
+            #rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
+            rpsbml.createMultiFluxObj(['rpFBA_obj'], ['M'+str(min(data[path_id]['steps']))], 1, True)
             if tmpOutputFolder:
                 rpsbml.writeSBML(tmpOutputFolder)
             else:
