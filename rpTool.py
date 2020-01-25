@@ -227,7 +227,7 @@ class rpReader:
             sub_path_step = 1
             for singleRule in ruleIds:
                 tmpReac = {'rule_id': singleRule.split('__')[0],
-                        'mnxr': singleRule.split('__')[1],
+                        'rule_ori_reac': {'mnxr': singleRule.split('__')[1]},
                         'rule_score': self.rr_reactions[singleRule.split('__')[0]][singleRule.split('__')[1]]['rule_score'],
                         'right': {},
                         'left': {},
@@ -359,15 +359,14 @@ class rpReader:
                         'path_id': None,
                         'transformation_id': None,
                         'rule_score': None,
-                        'mnxr': None}
+                        'rule_ori_reac': None}
                 rpsbml.createReaction('RP1_sink',
                         'B_999999',
                         'B_0',
                         targetStep,
                         compartment_id)
                 #6) Optional?? Add the flux objectives. Could be in another place, TBD
-                #rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
-                rpsbml.createMultiFluxObj(['rpFBA_obj'], ['RP1_sink'], 1, True)
+                rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
                 if tmpOutputFolder:
                     rpsbml.writeSBML(tmpOutputFolder)
                 else:
@@ -398,6 +397,18 @@ class rpReader:
         rp_transformation = self.transformation(scope)
         return self.outPathsToSBML(rp_strc, rp_transformation, outPaths, tmpOutputFolder, maxRuleIds, pathway_id, compartment_id)
 
+
+    def rp2ToSBML_hdd(self,
+                      compounds,
+                      scope,
+                      outPaths,
+                      tmpOutputFolder,
+                      maxRuleIds=10,
+                      pathId='rp_pathway',
+                      compartment_id='MNXC3'):
+        rp_strc = self.compounds(compounds)
+        rp_transformation = self.transformation(scope)
+        self.outPathsToSBML_hdd(rp_strc, rp_transformation, outPaths, tmpOutputFolder, maxRuleIds, pathId, compartment_id)
 
     #######################################################################
     ############################# JSON input ##############################
@@ -463,7 +474,7 @@ class rpReader:
                     #NOTE: pick the rule with the highest diameter
                     r_id = sorted(node['data']['Rule ID'], key=lambda x: int(x.split('-')[-2]), reverse=True)[0]
                     reactions_list[pathNum][node['data']['id']] = {'rule_id': r_id,
-                        'mnxr': None,
+                        'rule_ori_reac': None,
                         'right': {},
                         'left': {},
                         'path_id': pathNum,
@@ -552,7 +563,7 @@ class rpReader:
                     sub_step = 1
                     for reac_id in self.rr_reactions[reactions_list[pathNum][rid]['rule_id']]:
                         tmpReac = copy.deepcopy(reactions_list[pathNum][rid])
-                        tmpReac['mnxr'] = reac_id
+                        tmpReac['rule_ori_reac'] = {'mnxr': reac_id}
                         tmpReac['sub_step'] = sub_step
                         rp_paths[pathNum][reactions_list[pathNum][rid]['step']][sub_step] = tmpReac
                         sub_step += 1
@@ -670,14 +681,14 @@ class rpReader:
                         'path_id': None,
                         'transformation_id': None,
                         'rule_score': None,
-                        'mnxr': None}
+                        'rule_ori_reac': None}
                 rpsbml.createReaction('RP1_sink',
                         'B_999999',
                         'B_0',
                         targetStep,
                         compartment_id)
                 #6) Optional?? Add the flux objectives. Could be in another place, TBD
-                rpsbml.createMultiFluxObj(['rpFBA_obj'], ['RP1_sink'], 1, True)
+                rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
                 sbml_paths['rp_'+str(step['path_id'])+'_'+str(altPathNum)] = rpsbml
                 altPathNum += 1
 
@@ -929,7 +940,7 @@ class rpReader:
             #create a new group for the measured pathway
             #need to convert the validation to step for reactions
             for stepNum in data[path_id]['steps']:
-                toSend = {'left': {}, 'right': {}, 'rule_id': None, 'mnxr': None, 'rule_score': None, 'path_id': path_id, 'step': stepNum, 'sub_step': None}
+                toSend = {'left': {}, 'right': {}, 'rule_id': None, 'rule_ori_reac': None, 'rule_score': None, 'path_id': path_id, 'step': stepNum, 'sub_step': None}
                 for chem in data[path_id]['steps'][stepNum]['substrates']:
                     if 'mnx' in chem['dbref']:
                         meta = sorted(chem['dbref']['mnx'], key=lambda x : int(x.replace('MNXM', '')))[0]
@@ -954,8 +965,7 @@ class rpReader:
                         data[path_id]['steps'][stepNum]['ec_numbers'],
                         {},
                         pathway_id)
-            #rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
-            rpsbml.createMultiFluxObj(['rpFBA_obj'], ['M'+str(min(data[path_id]['steps']))], 1, True)
+            rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
             if tmpOutputFolder:
                 rpsbml.writeSBML(tmpOutputFolder)
             else:
