@@ -8,3 +8,5 @@ test/results/
 .ipynb_checkpoints/
 *.ipynb
 rpCache.py
+.DS_Store
+*.tar.xz
