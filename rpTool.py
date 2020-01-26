@@ -227,7 +227,7 @@ class rpReader:
             sub_path_step = 1
             for singleRule in ruleIds:
                 tmpReac = {'rule_id': singleRule.split('__')[0],
-                        'mnxr': singleRule.split('__')[1],
+                        'rule_ori_reac': {'mnxr': singleRule.split('__')[1]},
                         'rule_score': self.rr_reactions[singleRule.split('__')[0]][singleRule.split('__')[1]]['rule_score'],
                         'right': {},
                         'left': {},
@@ -359,7 +359,7 @@ class rpReader:
                         'path_id': None,
                         'transformation_id': None,
                         'rule_score': None,
-                        'mnxr': None}
+                        'rule_ori_reac': None}
                 rpsbml.createReaction('RP1_sink',
                         'B_999999',
                         'B_0',
@@ -462,7 +462,7 @@ class rpReader:
                     #NOTE: pick the rule with the highest diameter
                     r_id = sorted(node['data']['Rule ID'], key=lambda x: int(x.split('-')[-2]), reverse=True)[0]
                     reactions_list[pathNum][node['data']['id']] = {'rule_id': r_id,
-                        'mnxr': None,
+                        'rule_ori_reac': None,
                         'right': {},
                         'left': {},
                         'path_id': pathNum,
@@ -669,7 +669,7 @@ class rpReader:
                         'path_id': None,
                         'transformation_id': None,
                         'rule_score': None,
-                        'mnxr': None}
+                        'rule_ori_reac': None}
                 rpsbml.createReaction('RP1_sink',
                         'B_999999',
                         'B_0',
@@ -928,7 +928,7 @@ class rpReader:
             #create a new group for the measured pathway
             #need to convert the validation to step for reactions
             for stepNum in data[path_id]['steps']:
-                toSend = {'left': {}, 'right': {}, 'rule_id': None, 'mnxr': None, 'rule_score': None, 'path_id': path_id, 'step': stepNum, 'sub_step': None}
+                toSend = {'left': {}, 'right': {}, 'rule_id': None, 'rule_ori_reac': None, 'rule_score': None, 'path_id': path_id, 'step': stepNum, 'sub_step': None}
                 for chem in data[path_id]['steps'][stepNum]['substrates']:
                     if 'mnx' in chem['dbref']:
                         meta = sorted(chem['dbref']['mnx'], key=lambda x : int(x.replace('MNXM', '')))[0]
