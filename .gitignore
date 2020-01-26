@@ -5,3 +5,6 @@ cache/
 input_cache/
 test/test_output.tar
 test/results/
+.ipynb_checkpoints/
+*.ipynb
+rpCache.py

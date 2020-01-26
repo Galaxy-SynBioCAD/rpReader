@@ -144,7 +144,7 @@ class RestQuery(Resource):
                     params['compartment_id'],
                     outputTar)
         if not isOK:
-            logging.error('rp2Reader returned False') 
+            logging.error('rp2Reader returned False')
         ########IMPORTANT######
         outputTar.seek(0)
         #######################
