@@ -398,18 +398,6 @@ class rpReader:
         return self.outPathsToSBML(rp_strc, rp_transformation, outPaths, tmpOutputFolder, maxRuleIds, pathway_id, compartment_id)
 
 
-    def rp2ToSBML_hdd(self,
-                      compounds,
-                      scope,
-                      outPaths,
-                      tmpOutputFolder,
-                      maxRuleIds=10,
-                      pathId='rp_pathway',
-                      compartment_id='MNXC3'):
-        rp_strc = self.compounds(compounds)
-        rp_transformation = self.transformation(scope)
-        self.outPathsToSBML_hdd(rp_strc, rp_transformation, outPaths, tmpOutputFolder, maxRuleIds, pathId, compartment_id)
-
     #######################################################################
     ############################# JSON input ##############################
     #######################################################################
@@ -563,7 +551,7 @@ class rpReader:
                     sub_step = 1
                     for reac_id in self.rr_reactions[reactions_list[pathNum][rid]['rule_id']]:
                         tmpReac = copy.deepcopy(reactions_list[pathNum][rid])
-                        tmpReac['rule_ori_reac'] = {'mnxr': reac_id}
+                        tmpReac['mnxr'] = reac_id
                         tmpReac['sub_step'] = sub_step
                         rp_paths[pathNum][reactions_list[pathNum][rid]['step']][sub_step] = tmpReac
                         sub_step += 1
