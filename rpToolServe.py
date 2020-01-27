@@ -93,8 +93,8 @@ def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways,
             return False
         with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
             for sbml_path in glob.glob(tmpOutputFolder+'/*'):
-                fileName = str(sbml_path.split('/')[-1].replace('.sbml', ''))
-                fileName += '.sbml.xml'
+                fileName = str(sbml_path.split('/')[-1].replace('.sbml', '').replace('.rpsbml', '').replace('.xml', ''))
+                fileName += '.rpsbml.xml'
                 info = tarfile.TarInfo(fileName)
                 info.size = os.path.getsize(sbml_path)
                 ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
