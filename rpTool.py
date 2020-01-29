@@ -366,7 +366,7 @@ class rpReader:
                         targetStep,
                         compartment_id)
                 #6) Optional?? Add the flux objectives. Could be in another place, TBD
-                rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
+                #rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
                 if tmpOutputFolder:
                     rpsbml.writeSBML(tmpOutputFolder)
                 else:

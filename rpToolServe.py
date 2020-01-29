@@ -62,18 +62,6 @@ def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways,
     return True
 
 
-class RestQuery(Resource):
-    """ REST interface that generates the Design.
-        Avoid returning numpy or pandas object in
-        order to keep the client lighter.
-    """
-    def post(self):
-        rp2paths_compounds = request.files['rp2paths_compounds'].read()
-        rp2_pathways = request.files['rp2_pathways'].read()
-        rp2paths_pathways = request.files['rp2paths_pathways'].read()
-        params = json.load(request.files['data'])
-
-
 ##
 #
 #
