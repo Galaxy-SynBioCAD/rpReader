@@ -10,3 +10,4 @@ test/results/
 rpCache.py
 .DS_Store
 *.tar.xz
+test_output.tar

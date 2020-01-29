@@ -5,6 +5,7 @@ import tarfile
 import libsbml
 import glob
 import tempfile
+import shutil
 
 sys.path.insert(0, '/home/')
 import rpTool as rpReader

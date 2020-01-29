@@ -1,4 +1,3 @@
-#FROM brsynth/rpcache-rest
 FROM brsynth/rpcache
 
 COPY rpTool.py /home/
