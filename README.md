@@ -5,13 +5,13 @@ REST service to parse the output of RetroPath2.0 and RP2paths to output as a col
 ## Installing
 
 ```
-docker build -t brsynth/rpreader -f Dockerfile .
+docker build -t brsynth/rpreader-rest -f Dockerfile .
 ```
 
 Run the service
 
 ```
-docker run -p 8888:8888 brsynth/rpreader
+docker run -p 8888:8888 brsynth/rpreader-rest
 ```
 
 ## Contributing
