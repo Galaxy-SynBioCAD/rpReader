@@ -347,8 +347,7 @@ class rpReader:
                             step,
                             compartment_id,
                             rp_transformation[step['transformation_id']]['rule'],
-                            rp_transformation[step['transformation_id']]['ec'],
-                            {},
+                            {'ec': rp_transformation[step['transformation_id']]['ec']},
                             pathway_id)
                 #5) adding the consumption of the target
                 targetStep = {'rule_id': None,
@@ -657,8 +656,7 @@ class rpReader:
                             step,
                             compartment_id,
                             reac_smiles[pathNum][step['rule_id']],
-                            reac_ecs[pathNum][step['rule_id']],
-                            {},
+                            {'ec': reac_ecs[pathNum][step['rule_id']]},
                             pathway_id)
                 #5) adding the consumption of the target
                 targetStep = {'rule_id': None,
@@ -950,8 +948,7 @@ class rpReader:
                         toSend,
                         compartment_id,
                         None,
-                        data[path_id]['steps'][stepNum]['ec_numbers'],
-                        {},
+                        {'ec': data[path_id]['steps'][stepNum]['ec_numbers']},
                         pathway_id)
             rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
             if tmpOutputFolder:
