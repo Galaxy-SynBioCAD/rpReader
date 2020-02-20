@@ -951,6 +951,7 @@ class rpReader:
                         {'ec': data[path_id]['steps'][stepNum]['ec_numbers']},
                         pathway_id)
             #rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
+            #### TODO add a sink reaction that takes all the products in the last step and consumes them
             if tmpOutputFolder:
                 rpsbml.writeSBML(tmpOutputFolder)
             else:
