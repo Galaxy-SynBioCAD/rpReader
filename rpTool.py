@@ -950,7 +950,7 @@ class rpReader:
                         None,
                         {'ec': data[path_id]['steps'][stepNum]['ec_numbers']},
                         pathway_id)
-            rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
+            #rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
             if tmpOutputFolder:
                 rpsbml.writeSBML(tmpOutputFolder)
             else:
