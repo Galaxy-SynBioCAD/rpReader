@@ -84,6 +84,39 @@ class rpReader:
     ############################ RP2paths entry functions #########
     ###############################################################
 
+    ## Function to group all the functions for parsing RP2 output to SBML files
+    #
+    # Takes RP2paths's compounds.txt and out_paths.csv and RetroPaths's *_scope.csv files and generates SBML
+    #
+    # @param compounds string path to RP2paths out_paths file
+    # @param scope string path to RetroPaths2's scope file output
+    # @param outPaths string path to RP2paths out_paths file
+    # @param maxRuleIds int The maximal number of members in a single substep (Reaction Rule)
+    # @param compartment_id string The ID of the SBML's model compartment where to add the reactions to
+    # @return Boolean The success or failure of the function
+    def rp2ToSBML(self,
+                  compounds,
+                  scope,
+                  outPaths,
+                  tmpOutputFolder=None,
+                  upper_flux_bound=999999,
+                  lower_flux_bound=0,
+                  maxRuleIds=10,
+                  pathway_id='rp_pathway',
+                  compartment_id='MNXC3',
+                  species_group_id='central_species'):
+        rp_strc = self._compounds(compounds)
+        rp_transformation = self._transformation(scope)
+        return self._outPathsToSBML(rp_strc,
+                                    rp_transformation, 
+                                    outPaths, 
+                                    upper_flux_bound,
+                                    lower_flux_bound,
+                                    tmpOutputFolder, 
+                                    maxRuleIds, 
+                                    pathway_id, 
+                                    compartment_id,
+                                    species_group_id)
 
     ## Function to parse the compounds.txt file
     #
@@ -93,7 +126,7 @@ class rpReader:
     #  @param self Object pointer
     #  @param path The compounds.txt file path
     #  @return rp_compounds Dictionnary of smile and structure for each compound
-    def compounds(self, path):
+    def _compounds(self, path):
         #self.rp_strc = {}
         rp_strc = {}
         try:
@@ -136,7 +169,7 @@ class rpReader:
     #
     #  @param self Object pointer
     #  @param path The scope.csv file path
-    def transformation(self, path):
+    def _transformation(self, path):
         rp_transformation = {}
         #### we might pass binary in the REST version
         reader = None
@@ -169,10 +202,12 @@ class rpReader:
     #  @param path The out_path.csv file path
     #  @maxRuleId maximal numer of rules associated with a step
     #  @return toRet_rp_paths Pathway object
-    def outPathsToSBML(self,
+    def _outPathsToSBML(self,
             rp_strc,
             rp_transformation,
             rp2paths_outPath,
+            upper_flux_bound=999999,
+            lower_flux_bound=0,
             tmpOutputFolder=None,
             maxRuleIds=10,
             pathway_id='rp_pathway',
@@ -296,7 +331,9 @@ class rpReader:
                 rpsbml.genericModel('RetroPath_Pathway_'+str(path_id)+'_'+str(altPathNum),
                         'RP_model_'+str(path_id)+'_'+str(altPathNum),
                         self.compXref[mnxc],
-                        compartment_id)
+                        compartment_id,
+                        upper_flux_bound,
+                        lower_flux_bound)
                 #2) create the pathway (groups)
                 rpsbml.createPathway(pathway_id)
                 rpsbml.createPathway(species_group_id)
@@ -342,8 +379,8 @@ class rpReader:
                     #add the substep to the model
                     step['sub_step'] = altPathNum
                     rpsbml.createReaction('RP'+str(step['step']), # parameter 'name' of the reaction deleted : 'RetroPath_Reaction_'+str(step['step']),
-                            'B_999999', #only for genericModel
-                            'B_0', #only for genericModel
+                            upper_flux_bound,
+                            lower_flux_bound,
                             step,
                             compartment_id,
                             rp_transformation[step['transformation_id']]['rule'],
@@ -360,8 +397,8 @@ class rpReader:
                         'rule_score': None,
                         'rule_ori_reac': None}
                 rpsbml.createReaction('RP1_sink',
-                        'B_999999',
-                        'B_0',
+                        upper_flux_bound,
+                        lower_flux_bound,
                         targetStep,
                         compartment_id)
                 #6) Optional?? Add the flux objectives. Could be in another place, TBD
@@ -372,29 +409,6 @@ class rpReader:
                     sbml_paths['rp_'+str(step['path_id'])+'_'+str(altPathNum)] = rpsbml
                 altPathNum += 1
         return sbml_paths
-
-
-    ## Function to group all the functions for parsing RP2 output to SBML files
-    #
-    # Takes RP2paths's compounds.txt and out_paths.csv and RetroPaths's *_scope.csv files and generates SBML
-    #
-    # @param compounds string path to RP2paths out_paths file
-    # @param scope string path to RetroPaths2's scope file output
-    # @param outPaths string path to RP2paths out_paths file
-    # @param maxRuleIds int The maximal number of members in a single substep (Reaction Rule)
-    # @param compartment_id string The ID of the SBML's model compartment where to add the reactions to
-    # @return Boolean The success or failure of the function
-    def rp2ToSBML(self,
-                  compounds,
-                  scope,
-                  outPaths,
-                  tmpOutputFolder=None,
-                  maxRuleIds=10,
-                  pathway_id='rp_pathway',
-                  compartment_id='MNXC3'):
-        rp_strc = self.compounds(compounds)
-        rp_transformation = self.transformation(scope)
-        return self.outPathsToSBML(rp_strc, rp_transformation, outPaths, tmpOutputFolder, maxRuleIds, pathway_id, compartment_id)
 
 
     #######################################################################
@@ -416,7 +430,13 @@ class rpReader:
     # @param colJson Dictionnary of
     #  @return rpsbml.document the SBML document
     #TODO: update this to include _hdd parsing
-    def jsonToSBML(self, collJson, pathway_id='rp_pathway', compartment_id='MNXC3', species_group_id='central_species'):
+    def jsonToSBML(self, 
+            collJson, 
+            upper_flux_bound=999999,
+            lower_flux_bound=0,
+            pathway_id='rp_pathway', 
+            compartment_id='MNXC3', 
+            species_group_id='central_species'):
         #global parameters used for all parameters
         pathNum = 1
         rp_paths = {}
@@ -582,7 +602,9 @@ class rpReader:
                 rpsbml.genericModel('RetroPath_Pathway_'+str(path_id)+'_'+str(altPathNum),
                         'RP_model_'+str(path_id)+'_'+str(altPathNum),
                         self.compXref[mnxc],
-                        compartment_id)
+                        compartment_id,
+                        upper_flux_bound,
+                        lower_flux_bound)
                 #2) create the pathway (groups)
                 rpsbml.createPathway(pathway_id)
                 rpsbml.createPathway(species_group_id)
@@ -651,8 +673,8 @@ class rpReader:
                                 step_mnxm[meta] = step[direc][meta]
                         step[direc] = step_mnxm
                     rpsbml.createReaction('RP'+str(step['step']),
-                            'B_999999', #only for genericModel
-                            'B_0', #only for genericModel
+                            upper_flux_bound,
+                            lower_flux_bound,
                             step,
                             compartment_id,
                             reac_smiles[pathNum][step['rule_id']],
@@ -669,8 +691,8 @@ class rpReader:
                         'rule_score': None,
                         'rule_ori_reac': None}
                 rpsbml.createReaction('RP1_sink',
-                        'B_999999',
-                        'B_0',
+                        upper_flux_bound,
+                        lower_flux_bound,
                         targetStep,
                         compartment_id)
                 #6) Optional?? Add the flux objectives. Could be in another place, TBD
@@ -680,7 +702,7 @@ class rpReader:
 
 
     #############################################################################################
-    ############################### validation data tsv #########################################
+    ############################### TSV data tsv ################################################
     #############################################################################################
 
 
@@ -693,7 +715,7 @@ class rpReader:
     # @param inFile The input JSON file
     # @param mnxHeader Reorganise the results around the target MNX products
     # @return Dictionnary of SBML
-    def parseValidation(self, inFile, mnxHeader=False):
+    def _parseTSV(self, inFile, mnxHeader=False):
         data = {}
         try:
             for row in csv.DictReader(open(inFile), delimiter='\t'):
@@ -834,13 +856,17 @@ class rpReader:
     # @param self Object pointer
     # @param inFile Input file
     # @param compartment_id compartment of the
-    def validationToSBML(self, inFile,
-            tmpOutputFolder=None,
-            compartment_id='MNXC3',
-            pathway_id='rp_pathway',
-            species_group_id='central_species'):
-        data = self.parseValidation(inFile)
+    def TSVtoSBML(self, 
+                  inFile,
+                  upper_flux_bound=99999,
+                  lower_flux_bound=0,
+                  tmpOutputFolder=None,
+                  compartment_id='MNXC3',
+                  pathway_id='rp_pathway',
+                  species_group_id='central_species'):
+        data = self._parseTSV(inFile)
         sbml_paths = {}
+        header_name = inFile.split('/')[-1].replace('.tsv', '').replace('.csv', '')
         #TODO: need to exit at this loop
         for path_id in data:
             try:
@@ -848,14 +874,16 @@ class rpReader:
             except KeyError:
                 self.logger.error('Could not Xref compartment_id ('+str(compartment_id)+')')
                 return False
-            rpsbml = rpSBML.rpSBML('measured_'+str(path_id))
+            rpsbml = rpSBML.rpSBML(header_name+'_'+str(path_id))
             #1) create a generic Model, ie the structure and unit definitions that we will use the most
             ##### TODO: give the user more control over a generic model creation:
             #   -> special attention to the compartment
-            rpsbml.genericModel('measured_'+str(path_id),
-                                'measured_'+str(path_id),
+            rpsbml.genericModel(header_name+'_Path'+str(path_id),
+                                header_name+'_Path'+str(path_id),
                                 self.compXref[mnxc],
-                                compartment_id)
+                                compartment_id,
+                                upper_flux_bound,
+                                lower_flux_bound)
             #find all the chemical species and add them to an SBML
             #2) create the pathway (groups)
             rpsbml.createPathway(pathway_id)
@@ -942,19 +970,38 @@ class rpReader:
                         self.logger.error('Need all the species to have a MNX ID')
                         break
                 #if all are full add it
-                rpsbml.createReaction('M'+str(stepNum),
-                        'B_999999', #only for genericModel
-                        'B_0', #only for genericModel
+                rpsbml.createReaction(header_name+'_Step'+str(stepNum),
+                        upper_flux_bound,
+                        lower_flux_bound,
                         toSend,
                         compartment_id,
                         None,
                         {'ec': data[path_id]['steps'][stepNum]['ec_numbers']},
                         pathway_id)
-            #rpsbml.createFluxObj('rpFBA_obj', 'M'+str(min(data[path_id]['steps'])), 1, True)
+                if stepNum==1:
+                    #adding the consumption of the target
+                    targetStep = {'rule_id': None,
+                            'left': {},
+                            'right': {},
+                            'step': None,
+                            'sub_step': None,
+                            'path_id': None,
+                            'transformation_id': None,
+                            'rule_score': None,
+                            'rule_ori_reac': None}
+                    for chem in data[path_id]['steps'][stepNum]['products']:
+                        meta = sorted(chem['dbref']['mnx'], key=lambda x : int(x.replace('MNXM', '')))[0]
+                        targetStep['left'][meta] = 1
+                    rpsbml.createReaction(header_name+'_Step1_sink',
+                            upper_flux_bound,
+                            lower_flux_bound,
+                            targetStep,
+                            compartment_id)
+                    rpsbml.createFluxObj('rpFBA_obj', header_name+'_Step1_sink', 1, True)
             if tmpOutputFolder:
                 rpsbml.writeSBML(tmpOutputFolder)
             else:
-                sbml_paths['measured_'+str(path_id)] = rpsbml
+                sbml_paths['rp_'+str(path_id)] = rpsbml
         if tmpOutputFolder:
             return {}
         else:

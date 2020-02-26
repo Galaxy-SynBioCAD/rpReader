@@ -15,10 +15,21 @@ import rpToolCache
 ## RetroPath2.0 reader for local packages
 #
 #
-def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways, maxRuleIds, pathway_id, compartment_id, outputTar):
+def rp2Reader_mem(rpreader, 
+        rp2paths_compounds, 
+        rp2_pathways, 
+        rp2paths_pathways, 
+        upper_flux_bound,
+        lower_flux_bound,
+        maxRuleIds, 
+        pathway_id, 
+        compartment_id, 
+        outputTar):
     rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
                                       rp2_pathways,
                                       rp2paths_pathways,
+                                      upper_flux_bound,
+                                      lower_flux_bound,
                                       None,
                                       maxRuleIds,
                                       pathway_id,
@@ -41,13 +52,24 @@ def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways,
 ## RetroPath2.0 reader for local packages
 #
 #
-def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways, maxRuleIds, pathway_id, compartment_id, outputTar):
+def rp2Reader_hdd(rpreader,
+        rp2paths_compounds, 
+        rp2_pathways, 
+        rp2paths_pathways, 
+        upper_flux_bound,
+        lower_flux_bound,
+        maxRuleIds, 
+        pathway_id, 
+        compartment_id, 
+        outputTar):
     with tempfile.TemporaryDirectory() as tmpOutputFolder:
         #Note the return here is {} and thus we can ignore it
         rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
                                           rp2_pathways,
                                           rp2paths_pathways,
                                           tmpOutputFolder,
+                                          upper_flux_bound,
+                                          lower_flux_bound,
                                           maxRuleIds,
                                           pathway_id,
                                           compartment_id)
@@ -65,7 +87,15 @@ def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways,
 ##
 #
 #
-def main(outputTar, rp2paths_compounds, rp2_pathways, rp2paths_pathways, maxRuleIds, compartment_id='MNXC3', pathway_id='rp_pathway'):
+def main(outputTar,
+        rp2paths_compounds, 
+        rp2_pathways, 
+        rp2paths_pathways, 
+        upper_flux_bound=999999,
+        lower_flux_bound=0,
+        maxRuleIds=2, 
+        compartment_id='MNXC3', 
+        pathway_id='rp_pathway'):
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
         rpcache = rpToolCache.rpToolCache()
@@ -84,6 +114,8 @@ def main(outputTar, rp2paths_compounds, rp2_pathways, rp2paths_pathways, maxRule
                     rp2paths_compounds,
                     rp2_pathways,
                     rp2paths_pathways,
+                    upper_flux_bound,
+                    lower_flux_bound,
                     int(params['maxRuleIds']),
                     params['pathway_id'],
                     params['compartment_id'],
@@ -95,6 +127,8 @@ def main(outputTar, rp2paths_compounds, rp2_pathways, rp2paths_pathways, maxRule
                              rp2paths_compounds,
                              rp2_pathways,
                              rp2paths_pathways,
+                             upper_flux_bound,
+                             lower_flux_bound,
                              int(maxRuleIds),
                              pathway_id,
                              compartment_id,
