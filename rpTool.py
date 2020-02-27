@@ -95,9 +95,9 @@ class rpReader:
     # @param compartment_id string The ID of the SBML's model compartment where to add the reactions to
     # @return Boolean The success or failure of the function
     def rp2ToSBML(self,
-                  compounds,
-                  scope,
-                  outPaths,
+                  rp2paths_compounds,
+                  rp2_pathways,
+                  rp2paths_pathways,
                   tmpOutputFolder=None,
                   upper_flux_bound=999999,
                   lower_flux_bound=0,
@@ -105,11 +105,11 @@ class rpReader:
                   pathway_id='rp_pathway',
                   compartment_id='MNXC3',
                   species_group_id='central_species'):
-        rp_strc = self._compounds(compounds)
-        rp_transformation = self._transformation(scope)
+        rp_strc = self._compounds(rp2paths_compounds)
+        rp_transformation = self._transformation(rp2_pathways)
         return self._outPathsToSBML(rp_strc,
                                     rp_transformation, 
-                                    outPaths, 
+                                    rp2paths_pathways, 
                                     upper_flux_bound,
                                     lower_flux_bound,
                                     tmpOutputFolder, 
@@ -1001,7 +1001,7 @@ class rpReader:
             if tmpOutputFolder:
                 rpsbml.writeSBML(tmpOutputFolder)
             else:
-                sbml_paths['rp_'+str(path_id)] = rpsbml
+                sbml_paths[header_name+'_Path'+str(path_id)] = rpsbml
         if tmpOutputFolder:
             return {}
         else:

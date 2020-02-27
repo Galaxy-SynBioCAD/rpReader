@@ -15,25 +15,27 @@ import rpToolCache
 ## RetroPath2.0 reader for local packages
 #
 #
-def rp2Reader_mem(rpreader, 
-        rp2paths_compounds, 
-        rp2_pathways, 
-        rp2paths_pathways, 
-        upper_flux_bound,
-        lower_flux_bound,
-        maxRuleIds, 
-        pathway_id, 
-        compartment_id, 
-        outputTar):
+def rp2Reader_mem(rpreader,
+                  rp2paths_compounds, 
+                  rp2_pathways, 
+                  rp2paths_pathways, 
+                  upper_flux_bound,
+                  lower_flux_bound,
+                  maxRuleIds, 
+                  pathway_id, 
+                  compartment_id,
+                  species_group_id,
+                  outputTar):
     rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
                                       rp2_pathways,
                                       rp2paths_pathways,
+                                      None,
                                       upper_flux_bound,
                                       lower_flux_bound,
-                                      None,
                                       maxRuleIds,
                                       pathway_id,
-                                      compartment_id)
+                                      compartment_id,
+                                      species_group_id)
     #pass the SBML results to a tar
     if rpsbml_paths=={}:
         return False
@@ -53,15 +55,16 @@ def rp2Reader_mem(rpreader,
 #
 #
 def rp2Reader_hdd(rpreader,
-        rp2paths_compounds, 
-        rp2_pathways, 
-        rp2paths_pathways, 
-        upper_flux_bound,
-        lower_flux_bound,
-        maxRuleIds, 
-        pathway_id, 
-        compartment_id, 
-        outputTar):
+                  rp2paths_compounds, 
+                  rp2_pathways, 
+                  rp2paths_pathways, 
+                  upper_flux_bound,
+                  lower_flux_bound,
+                  maxRuleIds, 
+                  pathway_id, 
+                  compartment_id, 
+                  species_group_id,
+                  outputTar):
     with tempfile.TemporaryDirectory() as tmpOutputFolder:
         #Note the return here is {} and thus we can ignore it
         rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
@@ -72,7 +75,8 @@ def rp2Reader_hdd(rpreader,
                                           lower_flux_bound,
                                           maxRuleIds,
                                           pathway_id,
-                                          compartment_id)
+                                          compartment_id,
+                                          species_group_id)
         if len(glob.glob(tmpOutputFolder+'/*'))==0:
             return False
         with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
@@ -88,14 +92,15 @@ def rp2Reader_hdd(rpreader,
 #
 #
 def main(outputTar,
-        rp2paths_compounds, 
-        rp2_pathways, 
-        rp2paths_pathways, 
-        upper_flux_bound=999999,
-        lower_flux_bound=0,
-        maxRuleIds=2, 
-        compartment_id='MNXC3', 
-        pathway_id='rp_pathway'):
+         rp2paths_compounds, 
+         rp2_pathways, 
+         rp2paths_pathways, 
+         upper_flux_bound=999999,
+         lower_flux_bound=0,
+         maxRuleIds=2, 
+         compartment_id='MNXC3', 
+         pathway_id='rp_pathway',
+         species_group_id='central_species'):
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
         rpcache = rpToolCache.rpToolCache()
@@ -114,11 +119,12 @@ def main(outputTar,
                     rp2paths_compounds,
                     rp2_pathways,
                     rp2paths_pathways,
-                    upper_flux_bound,
-                    lower_flux_bound,
-                    int(params['maxRuleIds']),
-                    params['pathway_id'],
-                    params['compartment_id'],
+                    int(upper_flux_bound),
+                    int(lower_flux_bound),
+                    int(maxRuleIds),
+                    pathway_id,
+                    compartment_id,
+                    species_group_id,
                     outputTar):
             abort(204)
         """
@@ -127,11 +133,12 @@ def main(outputTar,
                              rp2paths_compounds,
                              rp2_pathways,
                              rp2paths_pathways,
-                             upper_flux_bound,
-                             lower_flux_bound,
+                             int(upper_flux_bound),
+                             int(lower_flux_bound),
                              int(maxRuleIds),
                              pathway_id,
                              compartment_id,
+                             species_group_id,
                              outputTar_bytes)
         if not isOK:
             logging.error('Function returned an error')
