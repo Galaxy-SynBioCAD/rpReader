@@ -25,18 +25,6 @@ import rpToolCache
 #rpreader = rpReader.rpReader()
 rpcache = rpToolCache.rpToolCache()
 
-#pass the cache parameters to the rpReader
-rpreader = rpReader.rpReader()
-rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
-rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
-rpreader.mnxm_strc = rpcache.mnxm_strc
-rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
-rpreader.rr_reactions = rpcache.rr_reactions
-rpreader.chemXref = rpcache.chemXref
-rpreader.compXref = rpcache.compXref
-rpreader.nameCompXref = rpcache.nameCompXref
-
-
 app = Flask(__name__)
 api = Api(app)
 #dataFolder = os.path.join( os.path.dirname(__file__),  'data' )
@@ -145,7 +133,17 @@ class RestQuery(Resource):
         rp2paths_compounds = request.files['rp2paths_compounds'].read()
         rp2_pathways = request.files['rp2_pathways'].read()
         rp2paths_pathways = request.files['rp2paths_pathways'].read()
-        params = json.load(request.files['data'])
+        params = json.load(request.files['data']) 
+        #pass the cache parameters to the rpReader
+        rpreader = rpReader.rpReader()
+        rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
+        rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
+        rpreader.mnxm_strc = rpcache.mnxm_strc
+        rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
+        rpreader.rr_reactions = rpcache.rr_reactions
+        rpreader.chemXref = rpcache.chemXref
+        rpreader.compXref = rpcache.compXref
+        rpreader.nameCompXref = rpcache.nameCompXref
         outputTar = io.BytesIO()
         #### MEM #####
         """
