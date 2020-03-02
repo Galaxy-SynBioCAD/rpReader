@@ -5,6 +5,7 @@ import tarfile
 import libsbml
 import glob
 import tempfile
+import logging
 import shutil
 
 sys.path.insert(0, '/home/')
