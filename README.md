@@ -8,6 +8,11 @@ REST service to parse the output of RetroPath2.0 and RP2paths to output as a col
 docker build -t brsynth/rpreader-standalone:dev -f Dockerfile .
 ```
 
+To test untar the test.tar.xz file and run the following command:
+
+```
+python run.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test/rp2_pathways.csv -rp2paths_pathways test/rp2paths_pathways.csv -outputTar test/test_rpReader.tar
+```
 
 ## Contributing
 
