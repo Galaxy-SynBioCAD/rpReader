@@ -1,4 +1,4 @@
-# rpReader 
+# rpReader docker 
 
 * Docker image: [brsynth/rpreader-standalone](https://hub.docker.com/r/brsynth/rpreader-standalone)
 
@@ -22,16 +22,16 @@ python run.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test
 
 ## Dependencies
 
-* Base Docker Image: [brsynth/rpBase](https://hub.docker.com/r/brsynth/rpbase)
-* Cache Docker Image: [brsynth/rpCache](https://hub.docker.com/r/brsynth/rpcache)
+* Base docker image: [brsynth/rpBase](https://hub.docker.com/r/brsynth/rpbase)
+* Cache docker image: [brsynth/rpCache](https://hub.docker.com/r/brsynth/rpcache)
 
 ## Contributing
 
 Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
 
-## Versioning
+## Version
 
-Version 0.1
+v0.1
 
 ## Authors
 
