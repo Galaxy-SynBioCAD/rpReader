@@ -10,18 +10,18 @@ Required:
 * **-rp2paths_pathways**: (string) Path to the rp2paths pathways file
 * **-rp2paths_compounds**: (string) Path to the rp2paths compounds file
 * **-rp2_pathways**: (string) Path to the RetroPath2.0 pathways file
-* **-upper_flux_bound**: 
-* **-lower_flux_bound**: 
-* **-maxRuleIds**: 
-* **-pathway_id**: 
-* **-compartment_id**: 
-* **-species_group_id**: 
-* **-outputTar**: 
 
-
-Required:
+Advanced options:
+* **-upper_flux_bound**: (integer, default=9999) Upper flux bound value
+* **-lower_flux_bound**: (integer, default=0) Lower flux bound value
+* **-maxRuleIds**: (integer, default=2) Number of subpaths per paths
+* **-pathway_id**: (string, default=rp_pathway) ID of the heterologous pathway
+* **-compartment_id**: (string, default=MNXC3) Heterologous pathway compartment ID
+* **-species_group_id**: (string, default=central_species) ID of the central species, i.e. not cofactors, in the heterologous reactions
 
 ## Output
+
+* **-outputTar**: (string) Path to the output tar.xz file
 
 ## Building the docker
 
