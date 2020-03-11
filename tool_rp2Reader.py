@@ -14,13 +14,26 @@ import rpToolServe
 ##
 #
 #
+'''
+def main(outputTar,
+         rp2paths_compounds,
+         rp2_pathways,
+         rp2paths_pathways,
+         upper_flux_bound=999999,
+         lower_flux_bound=0,
+         maxRuleIds=2,
+         compartment_id='MNXC3',
+         pathway_id='rp_pathway',
+         species_group_id='central_species'):
+
+'''
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Python wrapper to parse RP2 to generate rpSBML collection')
     parser.add_argument('-rp2paths_compounds', type=str)
     parser.add_argument('-rp2_pathways', type=str)
     parser.add_argument('-rp2paths_pathways', type=str)
-    parser.add_argument('-upper_flux_bound', type=int)
-    parser.add_argument('-lower_flux_bound', type=int)
+    parser.add_argument('-upper_flux_bound', type=int, default=999999)
+    parser.add_argument('-lower_flux_bound', type=int, default=0)
     parser.add_argument('-maxRuleIds', type=int)
     parser.add_argument('-pathway_id', type=str)
     parser.add_argument('-compartment_id', type=str)
