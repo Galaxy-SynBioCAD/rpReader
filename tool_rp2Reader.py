@@ -25,9 +25,9 @@ if __name__ == "__main__":
     parser.add_argument('-pathway_id', type=str, default='rp_pathway')
     parser.add_argument('-compartment_id', type=str, default='MNXC3')
     parser.add_argument('-species_group_id', type=str, default='central_species')
-    parser.add_argument('-outputTar', type=str)
+    parser.add_argument('-output', type=str)
     params = parser.parse_args()
-    rpToolServe.main(params.outputTar,
+    rpToolServe.main(params.output,
                      params.rp2paths_compounds,
                      params.rp2_pathways,
                      params.rp2paths_pathways,

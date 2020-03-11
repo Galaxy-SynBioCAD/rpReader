@@ -16,7 +16,7 @@ Advanced options:
 * **-lower_flux_bound**: (integer, default=0) Lower flux bound value
 * **-maxRuleIds**: (integer, default=2) Number of subpaths per paths
 * **-pathway_id**: (string, default=rp_pathway) ID of the heterologous pathway
-* **-compartment_id**: (string, default=MNXC3) Heterologous pathway compartment ID
+* **-compartment_id**: (string, default=MNXC3 (i.e. cytoplasm)) Heterologous pathway compartment ID
 * **-species_group_id**: (string, default=central_species) ID of the central species, i.e. not cofactors, in the heterologous reactions
 
 ## Output
