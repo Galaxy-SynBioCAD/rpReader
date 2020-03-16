@@ -43,8 +43,8 @@ def main(outputTar,
         shutil.copy(rp2paths_compounds, tmpOutputFolder+'/rp2paths_compounds.csv')
         shutil.copy(rp2paths_pathways, tmpOutputFolder+'/rp2paths_pathways.csv')
         shutil.copy(rp2_pathways, tmpOutputFolder+'/rp2_pathways.csv')
-        command = ['/home/tool_rp2Reader.py',
-                   '-rp2paths_compounds',
+        command = ['/home/single_string.py',
+                   '-rp2path',
                    '/home/tmp_output/rp2paths_compounds.csv',
                    '-rp2_pathways',
                    '/home/tmp_output/rp2_pathways.csv',
@@ -77,24 +77,8 @@ def main(outputTar,
 #
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Convert the results of RP2 and rp2paths to SBML files')
-    parser.add_argument('-rp2paths_compounds', type=str)
-    parser.add_argument('-rp2_pathways', type=str)
-    parser.add_argument('-rp2paths_pathways', type=str)
-    parser.add_argument('-upper_flux_bound', type=int, default=999999)
-    parser.add_argument('-lower_flux_bound', type=int, default=0)
-    parser.add_argument('-maxRuleIds', type=int, default=2)
-    parser.add_argument('-pathway_id', type=str, default='rp_pathway')
-    parser.add_argument('-compartment_id', type=str, default='MNXC3')
-    parser.add_argument('-species_group_id', type=str, default='central_species')
-    parser.add_argument('-outputTar', type=str)
+    parser.add_argument('-reacString', type=str)
+    parser.add_argument('-ec', type=str)
     params = parser.parse_args()
-    main(params.outputTar,
-         params.rp2paths_compounds,
-         params.rp2_pathways,
-         params.rp2paths_pathways,
-         params.upper_flux_bound,
-         params.lower_flux_bound,
-         params.maxRuleIds,
-         params.compartment_id,
-         params.pathway_id,
-         params.species_group_id)
+    main(params.reacString,
+         params.ec)
