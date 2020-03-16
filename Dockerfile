@@ -6,4 +6,3 @@ COPY rpToolCache.py /home/
 COPY tool_rp2Reader.py /home/
 
 RUN python rpToolCache.py
-

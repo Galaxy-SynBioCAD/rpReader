@@ -108,13 +108,13 @@ class rpReader:
         rp_strc = self._compounds(rp2paths_compounds)
         rp_transformation = self._transformation(rp2_pathways)
         return self._outPathsToSBML(rp_strc,
-                                    rp_transformation, 
-                                    rp2paths_pathways, 
+                                    rp_transformation,
+                                    rp2paths_pathways,
                                     upper_flux_bound,
                                     lower_flux_bound,
-                                    tmpOutputFolder, 
-                                    maxRuleIds, 
-                                    pathway_id, 
+                                    tmpOutputFolder,
+                                    maxRuleIds,
+                                    pathway_id,
                                     compartment_id,
                                     species_group_id)
 
@@ -430,13 +430,13 @@ class rpReader:
     # @param colJson Dictionnary of
     #  @return rpsbml.document the SBML document
     #TODO: update this to include _hdd parsing
-    def jsonToSBML(self, 
-            collJson, 
-            upper_flux_bound=999999,
-            lower_flux_bound=0,
-            pathway_id='rp_pathway', 
-            compartment_id='MNXC3', 
-            species_group_id='central_species'):
+    def jsonToSBML(self,
+                   collJson,
+                   upper_flux_bound=999999,
+                   lower_flux_bound=0,
+                   pathway_id='rp_pathway',
+                   compartment_id='MNXC3',
+                   species_group_id='central_species'):
         #global parameters used for all parameters
         pathNum = 1
         rp_paths = {}
@@ -856,7 +856,7 @@ class rpReader:
     # @param self Object pointer
     # @param inFile Input file
     # @param compartment_id compartment of the
-    def TSVtoSBML(self, 
+    def TSVtoSBML(self,
                   inFile,
                   upper_flux_bound=99999,
                   lower_flux_bound=0,
@@ -1006,3 +1006,123 @@ class rpReader:
             return {}
         else:
             return sbml_paths
+
+
+    ######################################################
+    ################## string to sbml ####################
+    ######################################################
+
+
+    ##
+    # react_string: '1 MNX:MNXM181 + 1 MNX:MNXM4 => 2 MNX:MNXM1 + 1 MNX:MNXM11441'
+    # ec: []
+    def reacStr_to_sbml(self,
+                        reac_sctring,
+                        ec=[])
+        #[{'reactants': [{'inchi': 'ajsjsjsjs', 'db_name': 'mnx', 'name': 'species1', 'id': 'MNXM181'}], 'products': [{'inchi': 'jdjdjdjdj', 'db_name': 'mnx', 'name': 'product1', 'id': 'MNXM1'}], 'ec': [{'id': '1.1.1.1'}]}]
+        reac_species = [{'stoichio': i.split(' ')[0],
+                         'inchi': '',
+                         'name': i.split(' ')[0].split(':')[1],
+                         'db_name': i.split(' ')[0].split(':')[0].lower(),
+                         'id': i.split(' ')[0].split(':')[1]}  for i in reac_sctring.split('=>')[0].split('+')]
+        reac_products = [{'stoichio': i.split(' ')[1],
+                          'inchi': '',
+                          'name': i.split(' ')[1].split(':')[1],
+                          'db_name': i.split(' ')[1].split(':')[0].lower(),
+                          'id': i.split(' ')[1].split(':')[1]}  for i in reac_sctring.split('=>')[0].split('+')]
+        reac = [{'reactants': reac_species,
+                 'products': reac_products,
+                 'ec': [{'id': i} for i in ec]}]
+	########### create CSV from input ##########
+	with tempfile.TemporaryDirectory() as tmpOutputFolder:
+		with open(tmpOutputFolder+'/tmp_input.tsv', 'w') as infi:
+			csvfi = csv.writer(infi, delimiter='\t', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+			header = ['pathway_ID',
+                                  'target_name',
+                                  'target_structure',
+                                  'step',
+                                  'substrate_name',
+                                  'substrate_dbref',
+                                  'substrate_structure',
+                                  'product_name',
+                                  'product_dbref',
+                                  'product_structure',
+                                  'EC_number',
+                                  'enzyme_identifier',
+                                  'enzyme_name',
+                                  'organism',
+                                  'yield',
+                                  'comments',
+                                  'pictures',
+                                  'pdf',
+                                  'reference',
+                                  'estimated time',
+                                  'growth media']
+			csvfi.writerow(header)
+			first_line = ['1',
+                                      'void',
+                                      'test',
+                                      '0',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '',
+                                      '']
+			csvfi.writerow(first_line)
+			reac_count = len(reac)
+			for reaction in reac:
+				reac = ';'.join([i['id'] for i in reaction['reactants']])
+				to_write = ['1',
+					input_dict['target_name'],
+					input_dict['target_inchi'],
+					str(reac_count),
+					';'.join([i['name'] for i in reaction['reactants']]),
+					';'.join([i['db_name']+':'+i['id'] for i in reaction['reactants']]),
+					';'.join([i['inchi'] for i in reaction['reactants']]),
+					';'.join([i['name'] for i in reaction['products']]),
+					';'.join([i['db_name']+':'+i['id'] for i in reaction['products']]),
+					';'.join([i['inchi'] for i in reaction['products']]),
+					';'.join([i['id'] for i in reaction['ec']]),
+					'',
+					'',
+					'',
+					'',
+					'',
+					'',
+					'',
+					'',
+					'',
+					'']
+				csvfi.writerow(to_write)
+				reac_count -= 1
+		############## create SBML from CSV #####
+		### rpReader #####
+		rpreader = rpReader.rpReader()
+		rpcache = rpToolCache.rpToolCache()
+		rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
+		rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
+		rpreader.mnxm_strc = rpcache.mnxm_strc
+		rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
+		rpreader.rr_reactions = rpcache.rr_reactions
+		rpreader.chemXref = rpcache.chemXref
+		rpreader.compXref = rpcache.compXref
+		rpreader.nameCompXref = rpcache.nameCompXref
+		##################
+		#measured_pathway = parseValidation(tmpOutputFolder+'/tmp_input.csv')
+		measured_sbml_paths = rpreader.validationToSBML(tmpOutputFolder+'/tmp_input.tsv',
+                                                                tmpOutputFolder+'/')
+		#should be only one
+		measured_sbml = glob.glob(tmpOutputFolder+'/*.sbml')[0]
+
