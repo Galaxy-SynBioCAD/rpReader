@@ -1,15 +1,9 @@
-<<<<<<< HEAD
-# rpReader 
-=======
 # rpReader docker 
->>>>>>> standalone-dev-mel
 
 * Docker image: [brsynth/rpreader-standalone](https://hub.docker.com/r/brsynth/rpreader-standalone)
 
 RetroPath2.0 and rp2paths to SBML conversion tool. Takes for input the output of both RetroPath2.0 and rp2paths or RetroPath3.0 and generates a series of enriches SBML files with all the files contained within them. 
 
-<<<<<<< HEAD
-=======
 ## Input
 
 Required:
@@ -29,7 +23,6 @@ Advanced options:
 
 * **-outputTar**: (string) Path to the output tar.xz file
 
->>>>>>> standalone-dev-mel
 ## Building the docker
 
 To build the docker locally, run the following command in the root folder of the project:
@@ -48,13 +41,8 @@ python run.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test
 
 ## Dependencies
 
-<<<<<<< HEAD
 * Base Docker Image: [brsynth/rpBase](https://hub.docker.com/r/brsynth/rpbase)
 * Cache Docker Image: [brsynth/rpCache](https://hub.docker.com/r/brsynth/rpcache)
-=======
-* Base docker image: [brsynth/rpBase](https://hub.docker.com/r/brsynth/rpbase)
-* Cache docker image: [brsynth/rpCache](https://hub.docker.com/r/brsynth/rpcache)
->>>>>>> standalone-dev-mel
 
 ## Contributing
 
@@ -62,11 +50,7 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Version
 
-<<<<<<< HEAD
-Version 0.1
-=======
 v0.1
->>>>>>> standalone-dev-mel
 
 ## Authors
 
