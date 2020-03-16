@@ -17,13 +17,13 @@ import rpToolCache
 #
 #
 def rp2Reader_mem(rpreader,
-                  rp2paths_compounds, 
-                  rp2_pathways, 
-                  rp2paths_pathways, 
+                  rp2paths_compounds,
+                  rp2_pathways,
+                  rp2paths_pathways,
                   upper_flux_bound,
                   lower_flux_bound,
-                  maxRuleIds, 
-                  pathway_id, 
+                  maxRuleIds,
+                  pathway_id,
                   compartment_id,
                   species_group_id,
                   outputTar):
@@ -56,14 +56,14 @@ def rp2Reader_mem(rpreader,
 #
 #
 def rp2Reader_hdd(rpreader,
-                  rp2paths_compounds, 
-                  rp2_pathways, 
-                  rp2paths_pathways, 
+                  rp2paths_compounds,
+                  rp2_pathways,
+                  rp2paths_pathways,
                   upper_flux_bound,
                   lower_flux_bound,
-                  maxRuleIds, 
-                  pathway_id, 
-                  compartment_id, 
+                  maxRuleIds,
+                  pathway_id,
+                  compartment_id,
                   species_group_id,
                   outputTar):
     with tempfile.TemporaryDirectory() as tmpOutputFolder:
@@ -93,13 +93,13 @@ def rp2Reader_hdd(rpreader,
 #
 #
 def main(outputTar,
-         rp2paths_compounds, 
-         rp2_pathways, 
-         rp2paths_pathways, 
+         rp2paths_compounds,
+         rp2_pathways,
+         rp2paths_pathways,
          upper_flux_bound=999999,
          lower_flux_bound=0,
-         maxRuleIds=2, 
-         compartment_id='MNXC3', 
+         maxRuleIds=2,
+         compartment_id='MNXC3',
          pathway_id='rp_pathway',
          species_group_id='central_species'):
         #pass the cache parameters to the rpReader

@@ -19,15 +19,15 @@ if __name__ == "__main__":
     parser.add_argument('-rp2paths_compounds', type=str)
     parser.add_argument('-rp2_pathways', type=str)
     parser.add_argument('-rp2paths_pathways', type=str)
-    parser.add_argument('-upper_flux_bound', type=int)
-    parser.add_argument('-lower_flux_bound', type=int)
-    parser.add_argument('-maxRuleIds', type=int)
-    parser.add_argument('-pathway_id', type=str)
-    parser.add_argument('-compartment_id', type=str)
-    parser.add_argument('-species_group_id', type=str)
-    parser.add_argument('-outputTar', type=str)
+    parser.add_argument('-upper_flux_bound', type=int, default=999999)
+    parser.add_argument('-lower_flux_bound', type=int, default=0)
+    parser.add_argument('-maxRuleIds', type=int, default=2)
+    parser.add_argument('-pathway_id', type=str, default='rp_pathway')
+    parser.add_argument('-compartment_id', type=str, default='MNXC3')
+    parser.add_argument('-species_group_id', type=str, default='central_species')
+    parser.add_argument('-output', type=str)
     params = parser.parse_args()
-    rpToolServe.main(params.outputTar,
+    rpToolServe.main(params.output,
                      params.rp2paths_compounds,
                      params.rp2_pathways,
                      params.rp2paths_pathways,
