@@ -1,5 +1,8 @@
 *.swp
 rpSBML.py
-__pycache__/
 cache/
 input_cache/
+test/
+.ipynb_checkpoints/
+rpCache.py
+.DS_Store

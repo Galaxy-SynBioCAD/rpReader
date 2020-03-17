@@ -9,6 +9,7 @@ import tarfile
 import libsbml
 import glob
 import tempfile
+import logging
 
 sys.path.insert(0, '/home/')
 import rpTool as rpReader
@@ -18,17 +19,15 @@ import rpToolCache
 ################### REST #####################
 ##############################################
 
-
-app = Flask(__name__)
-api = Api(app)
-#dataFolder = os.path.join( os.path.dirname(__file__),  'data' )
-
-#TODO: test that it works well
-#declare the rpReader globally to avoid reading the pickle at every instance
+################# rpCache ###################
 
 #TODO: test passing the parameters directly
 #rpreader = rpReader.rpReader()
 rpcache = rpToolCache.rpToolCache()
+
+app = Flask(__name__)
+api = Api(app)
+#dataFolder = os.path.join( os.path.dirname(__file__),  'data' )
 
 def stamp(data, status=1):
     appinfo = {'app': 'rpReader', 'version': '1.0',
@@ -52,14 +51,27 @@ class RestApp(Resource):
 ## RetroPath2.0 reader for local packages
 #
 #
-def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways, maxRuleIds, pathway_id, compartment_id, outputTar):
+def rp2Reader_mem(rpreader,
+                  rp2paths_compounds, 
+                  rp2_pathways, 
+                  rp2paths_pathways, 
+                  upper_flux_bound,
+                  lower_flux_bound,
+                  maxRuleIds, 
+                  pathway_id, 
+                  compartment_id,
+                  species_group_id,
+                  outputTar):
     rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
-                        rp2_pathways,
-                        rp2paths_pathways,
-                        None,
-                        maxRuleIds,
-                        pathway_id,
-                        compartment_id)
+                                      rp2_pathways,
+                                      rp2paths_pathways,
+                                      None,
+                                      upper_flux_bound,
+                                      lower_flux_bound,
+                                      maxRuleIds,
+                                      pathway_id,
+                                      compartment_id,
+                                      species_group_id)
     #pass the SBML results to a tar
     if rpsbml_paths=={}:
         return False
@@ -78,22 +90,34 @@ def rp2Reader_mem(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways,
 ## RetroPath2.0 reader for local packages
 #
 #
-def rp2Reader_hdd(rpreader, rp2paths_compounds, rp2_pathways, rp2paths_pathways, maxRuleIds, pathway_id, compartment_id, outputTar):
+def rp2Reader_hdd(rpreader,
+                  rp2paths_compounds, 
+                  rp2_pathways, 
+                  rp2paths_pathways, 
+                  upper_flux_bound,
+                  lower_flux_bound,
+                  maxRuleIds, 
+                  pathway_id, 
+                  compartment_id, 
+                  species_group_id,
+                  outputTar):
     with tempfile.TemporaryDirectory() as tmpOutputFolder:
         #Note the return here is {} and thus we can ignore it
         rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
                                           rp2_pathways,
                                           rp2paths_pathways,
                                           tmpOutputFolder,
+                                          upper_flux_bound,
+                                          lower_flux_bound,
                                           maxRuleIds,
                                           pathway_id,
-                                          compartment_id)
-        if len(glob.glob(tmpOutputFolder+'/*'))==1:
+                                          compartment_id,
+                                          species_group_id)
+        if len(glob.glob(tmpOutputFolder+'/*'))==0:
             return False
         with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
             for sbml_path in glob.glob(tmpOutputFolder+'/*'):
-                fileName = str(sbml_path.split('/')[-1].replace('.sbml', ''))
-                fileName += '.sbml.xml'
+                fileName = str(sbml_path.split('/')[-1].replace('.sbml', '').replace('.rpsbml', '').replace('.xml', ''))+'.rpsbml.xml'
                 info = tarfile.TarInfo(fileName)
                 info.size = os.path.getsize(sbml_path)
                 ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
@@ -109,7 +133,7 @@ class RestQuery(Resource):
         rp2paths_compounds = request.files['rp2paths_compounds'].read()
         rp2_pathways = request.files['rp2_pathways'].read()
         rp2paths_pathways = request.files['rp2paths_pathways'].read()
-        params = json.load(request.files['data'])
+        params = json.load(request.files['data']) 
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
         rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
@@ -127,21 +151,29 @@ class RestQuery(Resource):
                     rp2paths_compounds,
                     rp2_pathways,
                     rp2paths_pathways,
+                    upper_flux_bound,
+                    lower_flux_bound,
                     int(params['maxRuleIds']),
                     params['pathway_id'],
                     params['compartment_id'],
+                    params['species_group_id'],
                     outputTar):
             abort(204)
         """
         #### HDD #####
         isOK = rp2Reader_hdd(rpreader,
-                    rp2paths_compounds,
-                    rp2_pathways,
-                    rp2paths_pathways,
-                    int(params['maxRuleIds']),
-                    params['pathway_id'],
-                    params['compartment_id'],
-                    outputTar)
+                             rp2paths_compounds,
+                             rp2_pathways,
+                             rp2paths_pathways,
+                             int(params['upper_flux_bound']),
+                             int(params['lower_flux_bound']),
+                             int(params['maxRuleIds']),
+                             params['pathway_id'],
+                             params['compartment_id'],
+                             params['species_group_id'],
+                             outputTar)
+        if not isOK:
+            logging.error('rp2Reader returned False')
         ########IMPORTANT######
         outputTar.seek(0)
         #######################
