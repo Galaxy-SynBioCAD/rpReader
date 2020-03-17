@@ -35,7 +35,7 @@ docker build -t brsynth/rpreader-rest -f Dockerfile .
 To run the service on the localhost as the Galaxy instance run:
 
 ```
-docker run -p 8888:8888 brsynth/rpreader-rest:dev
+docker run -p 8888:8888 brsynth/rpreader-rest
 ```
 
 ### Testing
