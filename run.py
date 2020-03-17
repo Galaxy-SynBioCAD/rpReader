@@ -64,12 +64,16 @@ def main(outputTar,
                    str(species_group_id),
                    '-outputTar',
                    '/home/tmp_output/output.dat']
-        docker_client.containers.run(image_str,
-                command,
-                auto_remove=True,
-                detach=False,
-                volumes={tmpOutputFolder+'/': {'bind': '/home/tmp_output', 'mode': 'rw'}})
+        container = docker_client.containers.run(image_str,
+                                                 command,
+                                                 detach=True,
+                                                 stderr=True,
+                                                 volumes={tmpOutputFolder+'/': {'bind': '/home/tmp_output', 'mode': 'rw'}})
+        container.wait()
+        err = container.logs(stdout=False, stderr=True)
+        print(err)
         shutil.copy(tmpOutputFolder+'/output.dat', outputTar)
+        container.remove()
 
 
 ##
