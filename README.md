@@ -28,7 +28,7 @@ NOTE: The calculated rp2paths pathways and compounds must be generated using the
 To build the image, use the Dockerfile using the following command:
 
 ```
-docker build -t brsynth/rpreader-rest:dev -f Dockerfile .
+docker build -t brsynth/rpreader-rest -f Dockerfile .
 ```
 
 To run the service on the localhost as the Galaxy instance run:
