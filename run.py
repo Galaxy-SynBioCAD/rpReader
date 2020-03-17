@@ -28,7 +28,7 @@ def main(outputTar,
          pathway_id,
          species_group_id):
     docker_client = docker.from_env()
-    image_str = 'brsynth/rpreader-standalone:dev'
+    image_str = 'brsynth/rpreader-standalone'
     try:
         image = docker_client.images.get(image_str)
     except docker.errors.ImageNotFound:
@@ -88,6 +88,9 @@ if __name__ == "__main__":
     parser.add_argument('-species_group_id', type=str, default='central_species')
     parser.add_argument('-outputTar', type=str)
     params = parser.parse_args()
+    if params.maxRuleIds<0:
+        logging.error('Max Rule ID cannot be <0: '+str(params.maxRuleIds))
+        exit(1)
     main(params.outputTar,
          params.rp2paths_compounds,
          params.rp2_pathways,
