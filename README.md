@@ -34,7 +34,15 @@ docker build -t brsynth/rpreader-rest:dev -f Dockerfile .
 To run the service on the localhost as the Galaxy instance run:
 
 ```
-docker run -p 8886:8888 brsynth/rpreader-rest:dev
+docker run -p 8888:8888 brsynth/rpreader-rest:dev
+```
+
+### Testing
+
+To run the test, untar the test.tar.xz folder and run the following command:
+
+```
+python tool_rp2Reader.py -rp2paths_compounds test/test_rp2paths_compounds.tsv -rp2_pathways test/test_rp2_pathways.csv -rp2paths_pathways test/test_rp2paths_pathways.csv -output test/test_rpReader.tar
 ```
 
 ### Prerequisites
@@ -49,7 +57,7 @@ TODO
 
 ## Versioning
 
-Version 0.1
+v0.1
 
 ## Authors
 

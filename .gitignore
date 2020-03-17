@@ -1,10 +1,10 @@
+OLD/
 *.swp
 rpSBML.py
 __pycache__/
 cache/
 input_cache/
-test/test_output.tar
-test/results/
+test/
 .ipynb_checkpoints/
 rpCache.py
 .DS_Store
