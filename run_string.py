@@ -28,7 +28,7 @@ def main(outputTar,
          pathway_id,
          species_group_id):
     docker_client = docker.from_env()
-    image_str = 'brsynth/rpreader-standalone'
+    image_str = 'brsynth/rpreader-standalone:dev'
     try:
         image = docker_client.images.get(image_str)
     except docker.errors.ImageNotFound:
