@@ -23,6 +23,11 @@ Advanced options:
 
 * **-outputTar**: (string) Path to the output tar.xz file
 
+## Dependencies
+
+* Base Docker Image: [brsynth/rpBase](https://hub.docker.com/r/brsynth/rpbase)
+* Cache Docker Image: [brsynth/rpCache](https://hub.docker.com/r/brsynth/rpcache)
+
 ## Building the docker
 
 To build the docker locally, run the following command in the root folder of the project:
@@ -38,11 +43,6 @@ To test untar the test.tar.xz file and run the following command:
 ```
 python run.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test/rp2_pathways.csv -rp2paths_pathways test/rp2paths_pathways.csv -outputTar test/test_rpReader.tar
 ```
-
-## Dependencies
-
-* Base Docker Image: [brsynth/rpBase](https://hub.docker.com/r/brsynth/rpbase)
-* Cache Docker Image: [brsynth/rpCache](https://hub.docker.com/r/brsynth/rpcache)
 
 ## Contributing
 
