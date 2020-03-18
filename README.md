@@ -24,6 +24,11 @@ Advanced options:
 
 * **-outputTar**: (string) Path to the output tar.xz file
 
+## Dependencies
+
+* Base Docker Image: [brsynth/rpBase](https://hub.docker.com/r/brsynth/rpbase)
+* Cache Docker Image: [brsynth/rpCache](https://hub.docker.com/r/brsynth/rpcache)
+
 ## Installing
 
 To build the image, use the Dockerfile using the following command:
@@ -45,11 +50,6 @@ To run the test, untar the test.tar.xz folder and run the following command:
 ```
 python tool_rp2Reader.py -rp2paths_compounds test/test_rp2paths_compounds.tsv -rp2_pathways test/test_rp2_pathways.csv -rp2paths_pathways test/test_rp2paths_pathways.csv -output test/test_rpReader.tar
 ```
-
-## Dependencies
-
-* Base Docker Image: [brsynth/rpBase](https://hub.docker.com/r/brsynth/rpbase)
-* Cache Docker Image: [brsynth/rpCache](https://hub.docker.com/r/brsynth/rpcache)
 
 ## Contributing
 
