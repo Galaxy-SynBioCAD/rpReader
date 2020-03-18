@@ -1,4 +1,4 @@
-# rpReader docker 
+# rpReader 
 
 * Docker image: [brsynth/rpreader-standalone](https://hub.docker.com/r/brsynth/rpreader-standalone)
 
