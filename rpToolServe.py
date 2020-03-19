@@ -88,6 +88,64 @@ def rp2Reader_hdd(rpreader,
                 ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
     return True
 
+'''
+##
+#
+#
+def main_string(outputTar,
+         upper_flux_bound=999999,
+         lower_flux_bound=0,
+         maxRuleIds=2,
+         compartment_id='MNXC3',
+         pathway_id='rp_pathway',
+         species_group_id='central_species'):
+        #pass the cache parameters to the rpReader
+        rpreader = rpReader.rpReader()
+        rpcache = rpToolCache.rpToolCache()
+        rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
+        rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
+        rpreader.mnxm_strc = rpcache.mnxm_strc
+        rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
+        rpreader.rr_reactions = rpcache.rr_reactions
+        rpreader.chemXref = rpcache.chemXref
+        rpreader.compXref = rpcache.compXref
+        rpreader.nameCompXref = rpcache.nameCompXref
+        outputTar_bytes = io.BytesIO()
+        #### MEM #####
+        """
+        if not rp2Reader_mem(rpreader,
+                    rp2paths_compounds,
+                    rp2_pathways,
+                    rp2paths_pathways,
+                    int(upper_flux_bound),
+                    int(lower_flux_bound),
+                    int(maxRuleIds),
+                    pathway_id,
+                    compartment_id,
+                    species_group_id,
+                    outputTar):
+            abort(204)
+        """
+        #### HDD #####
+        isOK = rp2Reader_hdd(rpreader,
+                             rp2paths_compounds,
+                             rp2_pathways,
+                             rp2paths_pathways,
+                             int(upper_flux_bound),
+                             int(lower_flux_bound),
+                             int(maxRuleIds),
+                             pathway_id,
+                             compartment_id,
+                             species_group_id,
+                             outputTar_bytes)
+        if not isOK:
+            logging.error('Function returned an error')
+        ########IMPORTANT######
+        outputTar_bytes.seek(0)
+        #######################
+        with open(outputTar, 'wb') as f:
+            shutil.copyfileobj(outputTar_bytes, f, length=131072)
+'''
 
 ##
 #

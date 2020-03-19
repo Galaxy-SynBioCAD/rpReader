@@ -17,16 +17,14 @@ import docker
 ##
 #
 #
-def main(outputTar,
-         rp2paths_compounds,
-         rp2_pathways,
-         rp2paths_pathways,
-         upper_flux_bound,
-         lower_flux_bound,
-         maxRuleIds,
-         compartment_id,
-         pathway_id,
-         species_group_id):
+def main(reaction_string,
+          ec,
+          upper_flux_bound,
+          lower_flux_bound,
+          pathway_id,
+          compartment_id,
+          species_group_id,
+          output)
     docker_client = docker.from_env()
     image_str = 'brsynth/rpreader-standalone:dev'
     try:
@@ -40,30 +38,23 @@ def main(outputTar,
             logging.error('Cannot pull image: '+str(image_str))
             exit(1)
     with tempfile.TemporaryDirectory() as tmpOutputFolder:
-        shutil.copy(rp2paths_compounds, tmpOutputFolder+'/rp2paths_compounds.csv')
-        shutil.copy(rp2paths_pathways, tmpOutputFolder+'/rp2paths_pathways.csv')
-        shutil.copy(rp2_pathways, tmpOutputFolder+'/rp2_pathways.csv')
         command = ['/home/single_string.py',
-                   '-rp2path',
-                   '/home/tmp_output/rp2paths_compounds.csv',
-                   '-rp2_pathways',
-                   '/home/tmp_output/rp2_pathways.csv',
-                   '-rp2paths_pathways',
-                   '/home/tmp_output/rp2paths_pathways.csv',
+                   '-reaction_string',
+                   reaction_string,
+                   '-ec',
+                   ec,
                    '-upper_flux_bound',
-                   str(upper_flux_bound),
+                   upper_flux_bound,
                    '-lower_flux_bound',
-                   str(lower_flux_bound),
-                   '-maxRuleIds',
-                   str(maxRuleIds),
+                   lower_flux_bound,
                    '-pathway_id',
-                   str(pathway_id),
+                   pathway_id,
                    '-compartment_id',
-                   str(compartment_id),
+                   compartment_id,
                    '-species_group_id',
-                   str(species_group_id),
-                   '-outputTar',
-                   '/home/tmp_output/output.dat']
+                   species_group_id,
+                   '-output',
+                   output]
         docker_client.containers.run(image_str,
                 command,
                 auto_remove=True,
@@ -77,8 +68,20 @@ def main(outputTar,
 #
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Convert the results of RP2 and rp2paths to SBML files')
-    parser.add_argument('-reacString', type=str)
-    parser.add_argument('-ec', type=str)
+    parser.add_argument('-reaction_string', type=str)
+    parser.add_argument('-ec', type=str, default='')
+    parser.add_argument('-upper_flux_bound', type=int, default=999999)
+    parser.add_argument('-lower_flux_bound', type=int, default=0)
+    parser.add_argument('-pathway_id', type=str, default='rp_pathway')
+    parser.add_argument('-compartment_id', type=str, default='MNXC3')
+    parser.add_argument('-species_group_id', type=str, default='central_species')
+    parser.add_argument('-output', type=str)
     params = parser.parse_args()
-    main(params.reacString,
-         params.ec)
+    main(params.reaction_string,
+          params.ec,
+          params.upper_flux_bound,
+          params.lower_flux_bound,
+          params.pathway_id,
+          params.compartment_id,
+          params.species_group_id,
+          params.output)

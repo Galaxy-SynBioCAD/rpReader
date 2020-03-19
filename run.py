@@ -21,12 +21,12 @@ def main(outputTar,
          rp2paths_compounds,
          rp2_pathways,
          rp2paths_pathways,
-         upper_flux_bound,
-         lower_flux_bound,
-         maxRuleIds,
-         compartment_id,
-         pathway_id,
-         species_group_id):
+         upper_flux_bound=999999,
+         lower_flux_bound=0,
+         maxRuleIds=2,
+         compartment_id='MNXC3',
+         pathway_id='rp_pathway',
+         species_group_id='central_species'):
     docker_client = docker.from_env()
     image_str = 'brsynth/rpreader-standalone:dev'
     try:
