@@ -17,10 +17,10 @@ import docker
 ##
 #
 #
-def main(outputTar,
-         rp2paths_compounds,
-         rp2_pathways,
+def main(rp2_pathways,
          rp2paths_pathways,
+         rp2paths_compounds,
+         output,
          upper_flux_bound=999999,
          lower_flux_bound=0,
          maxRuleIds=2,
@@ -62,7 +62,7 @@ def main(outputTar,
                    str(compartment_id),
                    '-species_group_id',
                    str(species_group_id),
-                   '-outputTar',
+                   '-output',
                    '/home/tmp_output/output.dat']
         container = docker_client.containers.run(image_str,
                                                  command,
@@ -71,8 +71,10 @@ def main(outputTar,
                                                  volumes={tmpOutputFolder+'/': {'bind': '/home/tmp_output', 'mode': 'rw'}})
         container.wait()
         err = container.logs(stdout=False, stderr=True)
-        print(err)
-        shutil.copy(tmpOutputFolder+'/output.dat', outputTar)
+        err_str = err.decode('utf-8') 
+        print(err_str)
+        if not 'ERROR' in err_str:
+            shutil.copy(tmpOutputFolder+'/output.dat', output)
         container.remove()
 
 
@@ -90,15 +92,15 @@ if __name__ == "__main__":
     parser.add_argument('-pathway_id', type=str, default='rp_pathway')
     parser.add_argument('-compartment_id', type=str, default='MNXC3')
     parser.add_argument('-species_group_id', type=str, default='central_species')
-    parser.add_argument('-outputTar', type=str)
+    parser.add_argument('-output', type=str)
     params = parser.parse_args()
     if params.maxRuleIds<0:
         logging.error('Max Rule ID cannot be <0: '+str(params.maxRuleIds))
         exit(1)
-    main(params.outputTar,
-         params.rp2paths_compounds,
-         params.rp2_pathways,
+    main(params.rp2_pathways,
          params.rp2paths_pathways,
+         params.rp2paths_compounds,
+         params.output,
          params.upper_flux_bound,
          params.lower_flux_bound,
          params.maxRuleIds,

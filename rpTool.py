@@ -884,7 +884,6 @@ class rpReader:
                                 compartment_id,
                                 upper_flux_bound,
                                 lower_flux_bound)
-            #find all the chemical species and add them to an SBML
             #2) create the pathway (groups)
             rpsbml.createPathway(pathway_id)
             rpsbml.createPathway(species_group_id)
