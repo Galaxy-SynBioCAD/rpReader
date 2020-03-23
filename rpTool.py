@@ -884,7 +884,6 @@ class rpReader:
                                 compartment_id,
                                 upper_flux_bound,
                                 lower_flux_bound)
-            #find all the chemical species and add them to an SBML
             #2) create the pathway (groups)
             rpsbml.createPathway(pathway_id)
             rpsbml.createPathway(species_group_id)
@@ -1008,11 +1007,11 @@ class rpReader:
             return sbml_paths
 
 
+
+    '''
     ######################################################
     ################## string to sbml ####################
     ######################################################
-
-
     ##
     # react_string: '1 MNX:MNXM181 + 1 MNX:MNXM4 => 2 MNX:MNXM1 + 1 MNX:MNXM11441'
     # ec: []
@@ -1125,4 +1124,4 @@ class rpReader:
                                                                 tmpOutputFolder+'/')
 		#should be only one
 		measured_sbml = glob.glob(tmpOutputFolder+'/*.sbml')[0]
-
+    '''
