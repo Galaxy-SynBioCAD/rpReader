@@ -63,9 +63,9 @@ def main(tsvfile,
         err = container.logs(stdout=False, stderr=True)
         err_str = err.decode('utf-8') 
         print(err_str)
-        #if not 'ERROR' in err_str:
-            #shutil.copy(tmpOutputFolder+'/output.dat', output)
-        shutil.copy(tmpOutputFolder+'/output.dat', output)
+        if not 'ERROR' in err_str:
+            shutil.copy(tmpOutputFolder+'/output.dat', output)
+        #shutil.copy(tmpOutputFolder+'/output.dat', output)
         container.remove()
 
 

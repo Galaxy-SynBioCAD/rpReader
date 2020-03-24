@@ -253,10 +253,6 @@ class rpReader:
                 self.logger.warning('There are too many rules, limiting the number to random top '+str(maxRuleIds))
                 try:
                     ruleIds = [y for y,_ in sorted([(i, tmp_rr_reactions[i]['rule_score']) for i in tmp_rr_reactions])][:int(maxRuleIds)] 
-                    #print(ruleIds)
-                    #self.logger.error('################ RULEIDS ########################')
-                    #self.logger.error(ruleIds)
-                    #self.logger.error('########################################')
                 except KeyError:
                     self.logger.warning('Could not select topX due inconsistencies between rules ids and rr_reactions... selecting random instead')
                     ruleIds = random.sample(tmp_rr_reactions, int(maxRuleIds))
@@ -746,7 +742,6 @@ class rpReader:
                     data[pathID]['organism'] = row['organism'].replace(' ', '')
                     data[pathID]['reference'] = row['reference'].replace(' ', '')
                 data[pathID]['steps'][stepID] = {}
-                data[pathID]['steps'][stepID]['uniprot'] = row['uniprot'].replace(' ', '').split(';')
                 ##### substrates #########
                 data[pathID]['steps'][stepID]['substrates'] = []
                 lenDBref = len(row['substrate_dbref'].split(';'))
@@ -820,7 +815,10 @@ class rpReader:
                 else:
                     self.logger.warning('Not equal length between substrate names, their structure or dbref ('+str(name)+'): '+str(row['product_name'])+' <--> '+str(row['product_structure'])+' <--> '+str(row['product_dbref']))
                     data[pathID]['isValid'] = False
-                data[pathID]['steps'][stepID]['ec_numbers'] = [i.replace(' ', '') for i in row['EC_number'].split(';')]
+                if not row['uniprot']=='':
+                    data[pathID]['steps'][stepID]['uniprot'] = row['uniprot'].replace(' ', '').split(';')
+                if not row['EC_number']=='':
+                    data[pathID]['steps'][stepID]['ec_numbers'] = [i.replace(' ', '') for i in row['EC_number'].split(';')]
                 data[pathID]['steps'][stepID]['enzyme_id'] = [i.replace(' ', '') for i in row['enzyme_identifier'].split(';')]
                 data[pathID]['steps'][stepID]['enzyme_name'] = row['enzyme_name'].split(';')
         except FileNotFoundError:
@@ -1001,14 +999,18 @@ class rpReader:
                     toSend['right'][meta] = 1
                         #break
                 #if all are full add it
+                reac_xref = {}
+                if 'ec_numbers' in data[path_id]['steps'][stepNum]:
+                    reac_xref['ec'] = data[path_id]['steps'][stepNum]['ec_numbers']
+                if 'uniprot' in data[path_id]['steps'][stepNum]:
+                    reac_xref['uniprot'] = data[path_id]['steps'][stepNum]['uniprot']
                 rpsbml.createReaction(header_name+'_Step'+str(stepNum),
                                       upper_flux_bound,
                                       lower_flux_bound,
                                       toSend,
                                       compartment_id,
                                       None,
-                                      {'ec': data[path_id]['steps'][stepNum]['ec_numbers'], 
-                                       'uniprot': data[path_id]['steps'][stepNum]['uniprot']},
+                                      reac_xref,
                                       pathway_id)
                 if stepNum==1:
                     #adding the consumption of the target

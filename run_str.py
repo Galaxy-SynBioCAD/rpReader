@@ -55,12 +55,18 @@ def main(reaction_string,
                    species_group_id,
                    '-output',
                    output]
-        docker_client.containers.run(image_str,
-                command,
-                auto_remove=True,
-                detach=False,
-                volumes={tmpOutputFolder+'/': {'bind': '/home/tmp_output', 'mode': 'rw'}})
-        shutil.copy(tmpOutputFolder+'/output.dat', outputTar)
+        container = docker_client.containers.run(image_str,
+                                                 command,
+                                                 detach=True,
+                                                 stderr=True,
+                                                 volumes={tmpOutputFolder+'/': {'bind': '/home/tmp_output', 'mode': 'rw'}})
+        container.wait()
+        err = container.logs(stdout=False, stderr=True)
+        err_str = err.decode('utf-8')
+        print(err_str)
+        if not 'ERROR' in err_str:
+            shutil.copy(tmpOutputFolder+'/output.dat', output)
+        container.remove()
 
 
 ##
