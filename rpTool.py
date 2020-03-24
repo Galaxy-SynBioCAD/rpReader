@@ -65,7 +65,7 @@ class rpReader:
         else:
             raise NotImplementedError('"{}" is not a valid input type'.format(itype))
         if rdmol is None:  # Check imprt
-            raise Exception('Import error from depiction "{}" of type "{}"'.format(idepic, itype))
+            raise NotImplementedError('Import error from depiction "{}" of type "{}"'.format(idepic, itype))
         # Export
         odepic = dict()
         for item in otype:
@@ -145,7 +145,7 @@ class rpReader:
                     try:
                         resConv = self._convert_depiction(idepic=row[1], itype='smiles', otype={'inchi'})
                         rp_strc[row[0]]['inchi'] = resConv['inchi']
-                    except DepictionError as e:
+                    except NotImplementedError as e:
                         self.logger.warning('Could not convert the following SMILES to InChI: '+str(row[1]))
                 try:
                     rp_strc[row[0]]['inchikey'] = self.mnxm_strc[row[0]]['inchikey']
@@ -155,7 +155,7 @@ class rpReader:
                     try:
                         resConv = self._convert_depiction(idepic=row[1], itype='smiles', otype={'inchikey'})
                         rp_strc[row[0]]['inchikey'] = resConv['inchikey']
-                    except DepictionError as e:
+                    except NotImplementedError as e:
                         self.logger.warning('Could not convert the following SMILES to InChI key: '+str(row[1]))
         except (TypeError, FileNotFoundError) as e:
             self.logger.error('Could not read the compounds file ('+str(path)+')')
@@ -252,10 +252,11 @@ class rpReader:
             if len(ruleIds)>int(maxRuleIds):
                 self.logger.warning('There are too many rules, limiting the number to random top '+str(maxRuleIds))
                 try:
-                    #ruleIds = [y for y,_ in sorted([(i, self.rr_reactions[i]['rule_score']) for i in ruleIds])][:maxRuleIds]
-                    ruleIds = [y for y,_ in sorted([(i, tmp_rr_reactions[i]['rule_score']) for i in tmp_rr_reactions])][:int(maxRuleIds)]
-                     
-                    print(ruleIds)
+                    ruleIds = [y for y,_ in sorted([(i, tmp_rr_reactions[i]['rule_score']) for i in tmp_rr_reactions])][:int(maxRuleIds)] 
+                    #print(ruleIds)
+                    #self.logger.error('################ RULEIDS ########################')
+                    #self.logger.error(ruleIds)
+                    #self.logger.error('########################################')
                 except KeyError:
                     self.logger.warning('Could not select topX due inconsistencies between rules ids and rr_reactions... selecting random instead')
                     ruleIds = random.sample(tmp_rr_reactions, int(maxRuleIds))
@@ -306,10 +307,8 @@ class rpReader:
                 if not int(path_step) in rp_paths[int(row[0])]:
                     rp_paths[int(row[0])][int(path_step)] = {}
                 rp_paths[int(row[0])][int(path_step)][int(sub_path_step)] = tmpReac
-                #rp_paths[int(row[0])][int(path_step)] = tmpReac
                 sub_path_step += 1
         #### pathToSBML ####
-        #self.rp_paths = rp_paths
         try:
             mnxc = self.nameCompXref[compartment_id]
         except KeyError:
@@ -534,7 +533,6 @@ class rpReader:
             #find the source in the LAST reaction in the pathway
             #NOTE: this assumes that the source is contained in a single final reaction and nowhere else
             last_rid = None
-            #step_num = len(reactions_list[pathNum])
             step_num = 1
             found_rid = []
             toFind_rid = list(reactions_list[pathNum].keys())
@@ -844,7 +842,7 @@ class rpReader:
                     final_pro_mnx = toRet[path_id]['steps'][max(toRet[path_id]['steps'])]['products'][0]['dbref']['mnx'][0]
                 except KeyError:
                     self.logger.error('The species '+str(toRet[path_id]['steps'][max(toRet[path_id]['steps'])]['products'][0]['name'])+' does not contain a mnx database reference... skipping whole pathway number '+str(path_id))
-                    continue
+                    #continue
                 if not final_pro_mnx in toRetTwo:
                     toRetTwo[final_pro_mnx] = {}
                 toRetTwo[final_pro_mnx][path_id] = toRet[path_id]
@@ -895,7 +893,7 @@ class rpReader:
                 #because of the nature of the input we need to remove duplicates
                 for i in data[path_id]['steps'][stepNum]['substrates']+data[path_id]['steps'][stepNum]['products']:
                     if not i in allChem:
-                        allChem.append(i)
+                        allChem.append(i)            
             #add them to the SBML
             for chem in allChem:
                 #PROBLEM: as it stands one expects the meta to be MNX
@@ -905,6 +903,16 @@ class rpReader:
                 else:
                     #TODO: add the species with other types of xref in annotation
                     self.logger.warning('Some species are not referenced by a MNX id and will be ignored')
+                    #try CHEBI
+                    try:
+                        meta = sorted(chem['dbref']['chebi'], key=lambda x : int(x))[0]
+                        meta = 'CHEBI_'+str(meta)
+                    except KeyError:
+                        #TODO: need to find a better way
+                        self.logger.warning('Cannot determine MNX or CHEBI entry, using random')
+                        tmpDB_name = list(chem['dbref'].keys())[0]
+                        meta = chem['dbref'][list(chem['dbref'].keys())[0]][0]
+                        meta = str(tmpDB_name)+'_'+str(meta) 
                     #break
                 #try to conver the inchi into the other structures
                 smiles = None
@@ -913,35 +921,37 @@ class rpReader:
                     resConv = self._convert_depiction(idepic=chem['inchi'], itype='inchi', otype={'smiles','inchikey'})
                     smiles = resConv['smiles']
                     inchikey = resConv['inchikey']
-                except DepictionError as e:
-                    self.logger.warning('Could not convert the following SMILES to InChI: '+str(row[1]))
+                except NotImplementedError as e:
+                    self.logger.warning('Could not convert the following InChI: '+str(chem['inchi']))
                 #create a new species
                 #here we want to gather the info from rpReader's rp_strc and mnxm_strc
                 try:
                     chemName = self.mnxm_strc[meta]['name']
                 except KeyError:
-                    chemName = None
+                    chemName = meta
                 #compile as much info as you can
                 #xref
                 try:
+                    #TODO: add the xref from the document
                     spe_xref = self.chemXref[meta]
                 except KeyError:
-                    spe_xref = {}
+                    #spe_xref = {}
+                    spe_xref = chem['dbref']
                 #inchi
                 try:
                     spe_inchi = self.mnxm_strc[meta]['inchi']
                 except KeyError:
-                    spe_inchi = None
+                    spe_inchi = chem['inchi']
                 #inchikey
                 try:
                     spe_inchikey = self.mnxm_strc[meta]['inchikey']
                 except KeyError:
-                    spe_inchikey = None
+                    spe_inchikey =  resConv['inchikey']
                 #smiles
                 try:
                     spe_smiles = self.mnxm_strc[meta]['smiles']
                 except KeyError:
-                    spe_smiles = None
+                    spe_smiles = resConv['smiles']
                 #pass the information to create the species
                 rpsbml.createSpecies(meta,
                         compartment_id,
@@ -959,27 +969,47 @@ class rpReader:
                 for chem in data[path_id]['steps'][stepNum]['substrates']:
                     if 'mnx' in chem['dbref']:
                         meta = sorted(chem['dbref']['mnx'], key=lambda x : int(x.replace('MNXM', '')))[0]
-                        toSend['left'][meta] = 1
+                        #try CHEBI
                     else:
-                        self.logger.error('Need all the species to have a MNX ID')
-                        break
+                        self.logger.warning('Not all the species to have a MNX ID')
+                        #break
+                        try:
+                            meta = sorted(chem['dbref']['chebi'], key=lambda x : int(x))[0]
+                            meta = 'CHEBI_'+str(meta)
+                        except KeyError:
+                            #TODO: need to find a better way
+                            self.logger.warning('Cannot determine MNX or CHEBI entry, using random')
+                            tmpDB_name = list(chem['dbref'].keys())[0]
+                            meta = chem['dbref'][list(chem['dbref'].keys())[0]][0]
+                            meta = str(tmpDB_name)+'_'+str(meta) 
+                    toSend['left'][meta] = 1
                 for chem in data[path_id]['steps'][stepNum]['products']:
                     if 'mnx' in chem['dbref']:
                         meta = sorted(chem['dbref']['mnx'], key=lambda x : int(x.replace('MNXM', '')))[0]
-                        toSend['right'][meta] = 1
+                        #try CHEBI
                     else:
-                        self.logger.error('Need all the species to have a MNX ID')
-                        break
+                        self.logger.warning('Need all the species to have a MNX ID')
+                        try:
+                            meta = sorted(chem['dbref']['chebi'], key=lambda x : int(x))[0]
+                            meta = 'CHEBI_'+str(meta)
+                        except KeyError:
+                            #TODO: need to find a better way
+                            self.logger.warning('Cannot determine MNX or CHEBI entry, using random')
+                            tmpDB_name = list(chem['dbref'].keys())[0]
+                            meta = chem['dbref'][list(chem['dbref'].keys())[0]][0]
+                            meta = str(tmpDB_name)+'_'+str(meta) 
+                    toSend['right'][meta] = 1
+                        #break
                 #if all are full add it
                 rpsbml.createReaction(header_name+'_Step'+str(stepNum),
-                        upper_flux_bound,
-                        lower_flux_bound,
-                        toSend,
-                        compartment_id,
-                        None,
-                        {'ec': data[path_id]['steps'][stepNum]['ec_numbers'], 
-                         'uniprot': data[path_id]['steps'][stepNum]['uniprot']},
-                        pathway_id)
+                                      upper_flux_bound,
+                                      lower_flux_bound,
+                                      toSend,
+                                      compartment_id,
+                                      None,
+                                      {'ec': data[path_id]['steps'][stepNum]['ec_numbers'], 
+                                       'uniprot': data[path_id]['steps'][stepNum]['uniprot']},
+                                      pathway_id)
                 if stepNum==1:
                     #adding the consumption of the target
                     targetStep = {'rule_id': None,
@@ -992,13 +1022,25 @@ class rpReader:
                             'rule_score': None,
                             'rule_ori_reac': None}
                     for chem in data[path_id]['steps'][stepNum]['products']:
-                        meta = sorted(chem['dbref']['mnx'], key=lambda x : int(x.replace('MNXM', '')))[0]
+                        try:
+                            #smallest MNX
+                            meta = sorted(chem['dbref']['mnx'], key=lambda x : int(x.replace('MNXM', '')))[0]
+                        except KeyError:
+                            #try CHEBI
+                            try:
+                                meta = sorted(chem['dbref']['chebi'], key=lambda x : int(x))[0]
+                                meta = 'CHEBI_'+str(meta)
+                            except KeyError:
+                                self.logger.warning('Cannot determine MNX or CHEBI entry, using random')
+                                tmpDB_name = list(chem['dbref'].keys())[0]
+                                meta = chem['dbref'][list(chem['dbref'].keys())[0]][0]
+                                meta = str(tmpDB_name)+'_'+str(meta)
                         targetStep['left'][meta] = 1
                     rpsbml.createReaction(header_name+'_Step1_sink',
-                            upper_flux_bound,
-                            lower_flux_bound,
-                            targetStep,
-                            compartment_id)
+                                          upper_flux_bound,
+                                          lower_flux_bound,
+                                          targetStep,
+                                          compartment_id)
                     rpsbml.createFluxObj('rpFBA_obj', header_name+'_Step1_sink', 1, True)
             if tmpOutputFolder:
                 rpsbml.writeSBML(tmpOutputFolder)

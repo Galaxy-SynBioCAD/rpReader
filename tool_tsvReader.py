@@ -25,9 +25,6 @@ if __name__ == "__main__":
     parser.add_argument('-species_group_id', type=str, default='central_species')
     parser.add_argument('-output', type=str)
     params = parser.parse_args()
-    if params.maxRuleIds<0:
-        logging.error('Max rule ID cannot be less than 0: '+str(params.maxRuleIds))
-        exit(1)
     rpToolServe.main_tsv(params.output,
                          params.tsvfile,
                          int(params.upper_flux_bound),

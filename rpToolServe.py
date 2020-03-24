@@ -233,9 +233,11 @@ def main_tsv(outputTar,
                                tmpOutputFolder,
                                upper_flux_bound,
                                lower_flux_bound,
-                               compartment,
+                               compartment_id,
                                pathway_id,
                                species_group_id)
+            logging.error(glob.glob(tmpOutputFolder+'/*'))
+            logging.error(outputTar)
             if len(glob.glob(tmpOutputFolder+'/*'))==0:
                 return False
             with tarfile.open(outputTar, mode='w:xz') as ot:
