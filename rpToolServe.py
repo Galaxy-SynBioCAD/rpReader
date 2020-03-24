@@ -150,16 +150,16 @@ def main_string(outputTar,
 ##
 #
 #
-def main(outputTar,
-         rp2paths_compounds,
-         rp2_pathways,
-         rp2paths_pathways,
-         upper_flux_bound=999999,
-         lower_flux_bound=0,
-         maxRuleIds=2,
-         compartment_id='MNXC3',
-         pathway_id='rp_pathway',
-         species_group_id='central_species'):
+def main_rp2(outputTar,
+             rp2paths_compounds,
+             rp2_pathways,
+             rp2paths_pathways,
+             upper_flux_bound=999999,
+             lower_flux_bound=0,
+             maxRuleIds=2,
+             compartment_id='MNXC3',
+             pathway_id='rp_pathway',
+             species_group_id='central_species'):
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
         rpcache = rpToolCache.rpToolCache()
@@ -206,3 +206,42 @@ def main(outputTar,
         #######################
         with open(outputTar, 'wb') as f:
             shutil.copyfileobj(outputTar_bytes, f, length=131072)
+
+##
+#
+#
+def main_tsv(outputTar,
+             tsvfile,
+             upper_flux_bound=999999,
+             lower_flux_bound=0,
+             compartment_id='MNXC3',
+             pathway_id='rp_pathway',
+             species_group_id='central_species'):
+        #pass the cache parameters to the rpReader
+        rpreader = rpReader.rpReader()
+        rpcache = rpToolCache.rpToolCache()
+        rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
+        rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
+        rpreader.mnxm_strc = rpcache.mnxm_strc
+        rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
+        rpreader.rr_reactions = rpcache.rr_reactions
+        rpreader.chemXref = rpcache.chemXref
+        rpreader.compXref = rpcache.compXref
+        rpreader.nameCompXref = rpcache.nameCompXref
+        with tempfile.TemporaryDirectory() as tmpOutputFolder:
+            rpreader.TSVtoSBML(tsvfile,
+                               tmpOutputFolder,
+                               upper_flux_bound,
+                               lower_flux_bound,
+                               compartment,
+                               pathway_id,
+                               species_group_id)
+            if len(glob.glob(tmpOutputFolder+'/*'))==0:
+                return False
+            with tarfile.open(outputTar, mode='w:xz') as ot:
+                for sbml_path in glob.glob(tmpOutputFolder+'/*'):
+                    fileName = str(sbml_path.split('/')[-1].replace('.sbml', '').replace('.rpsbml', '').replace('.xml', ''))+'.rpsbml.xml'
+                    info = tarfile.TarInfo(fileName)
+                    info.size = os.path.getsize(sbml_path)
+                    ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
+        return True

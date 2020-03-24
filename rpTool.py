@@ -254,6 +254,8 @@ class rpReader:
                 try:
                     #ruleIds = [y for y,_ in sorted([(i, self.rr_reactions[i]['rule_score']) for i in ruleIds])][:maxRuleIds]
                     ruleIds = [y for y,_ in sorted([(i, tmp_rr_reactions[i]['rule_score']) for i in tmp_rr_reactions])][:int(maxRuleIds)]
+                     
+                    print(ruleIds)
                 except KeyError:
                     self.logger.warning('Could not select topX due inconsistencies between rules ids and rr_reactions... selecting random instead')
                     ruleIds = random.sample(tmp_rr_reactions, int(maxRuleIds))
@@ -401,8 +403,7 @@ class rpReader:
                         lower_flux_bound,
                         targetStep,
                         compartment_id)
-                #6) Optional?? Add the flux objectives. Could be in another place, TBD
-                #rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
+                #6) Add the flux objectives
                 if tmpOutputFolder:
                     rpsbml.writeSBML(tmpOutputFolder)
                 else:
@@ -747,14 +748,15 @@ class rpReader:
                     data[pathID]['organism'] = row['organism'].replace(' ', '')
                     data[pathID]['reference'] = row['reference'].replace(' ', '')
                 data[pathID]['steps'][stepID] = {}
+                data[pathID]['steps'][stepID]['uniprot'] = row['uniprot'].replace(' ', '').split(';')
                 ##### substrates #########
                 data[pathID]['steps'][stepID]['substrates'] = []
                 lenDBref = len(row['substrate_dbref'].split(';'))
                 for i in row['substrate_dbref'].split(';'):
                     if i=='':
                         lenDBref -= 1
-                lenStrc = len(row['substrate_structure'].split(';'))
-                for i in row['substrate_structure'].split(';'):
+                lenStrc = len(row['substrate_structure'].split('_'))
+                for i in row['substrate_structure'].split('_'):
                     if i=='':
                         lenStrc -= 1
                 lenSub = len(row['substrate_name'].split(';'))
@@ -763,7 +765,7 @@ class rpReader:
                         lenSub -= 1
                 if lenSub==lenStrc==lenSub:
                     for name, inchi, dbrefs in zip(row['substrate_name'].split(';'),
-                            row['substrate_structure'].split(';'),
+                            row['substrate_structure'].split('_'),
                             row['substrate_dbref'].split(';')):
                         tmp = {}
                         tmp['inchi'] = inchi.replace(' ', '')
@@ -790,8 +792,8 @@ class rpReader:
                 for i in row['product_dbref'].split(';'):
                     if i=='':
                         lenDBref -= 1
-                lenStrc = len(row['product_structure'].split(';'))
-                for i in row['product_structure'].split(';'):
+                lenStrc = len(row['product_structure'].split('_'))
+                for i in row['product_structure'].split('_'):
                     if i=='':
                         lenStrc -= 1
                 lenSub = len(row['product_name'].split(';'))
@@ -800,7 +802,7 @@ class rpReader:
                         lenSub -= 1
                 if lenSub==lenStrc==lenDBref:
                     for name, inchi, dbrefs in zip(row['product_name'].split(';'),
-                            row['product_structure'].split(';'),
+                            row['product_structure'].split('_'),
                             row['product_dbref'].split(';')):
                         tmp = {}
                         tmp['inchi'] = inchi.replace(' ', '')
@@ -858,9 +860,9 @@ class rpReader:
     # @param compartment_id compartment of the
     def TSVtoSBML(self,
                   inFile,
+                  tmpOutputFolder=None,
                   upper_flux_bound=99999,
                   lower_flux_bound=0,
-                  tmpOutputFolder=None,
                   compartment_id='MNXC3',
                   pathway_id='rp_pathway',
                   species_group_id='central_species'):
@@ -975,7 +977,8 @@ class rpReader:
                         toSend,
                         compartment_id,
                         None,
-                        {'ec': data[path_id]['steps'][stepNum]['ec_numbers']},
+                        {'ec': data[path_id]['steps'][stepNum]['ec_numbers'], 
+                         'uniprot': data[path_id]['steps'][stepNum]['uniprot']},
                         pathway_id)
                 if stepNum==1:
                     #adding the consumption of the target
