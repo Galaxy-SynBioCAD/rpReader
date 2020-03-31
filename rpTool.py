@@ -397,9 +397,6 @@ class rpReader:
                 #3) find all the unique species and add them to the model
                 all_meta = set([i for step in steps for lr in ['left', 'right'] for i in step[lr]])
                 for meta in all_meta:
-                    logging.warning('##############################################')
-                    logging.warning('##################### '+str(meta)+' #######################')
-                    logging.warning('##############################################')
                     try:
                         chemName = self.mnxm_strc[meta]['name']
                     except KeyError:
@@ -495,15 +492,8 @@ class rpReader:
                         spe_smiles = pubchem_smiles
                     if pubchem_inchi:
                         self.pubchem_species[pubchem_inchi] = {'inchi': pubchem_inchi, 'smiles': pubchem_smiles, 'inchikey': pubchem_inchikey, 'xref': pubchem_xref}
-                    self.logger.warning('###############################')
-                    self.logger.warning(spe_inchi)
-                    self.logger.warning('spe_xref: '+str(spe_xref))
-                    self.logger.warning('pubchem_xref: '+str(pubchem_xref))
-                    self.logger.warning('-----------------------------')
                     if not spe_xref:
                         spe_xref = pubchem_xref
-                    self.logger.warning('spe_xref: '+str(spe_xref))
-                    self.logger.warning('###############################')
                     #pass the information to create the species
                     rpsbml.createSpecies(meta,
                             compartment_id,
@@ -856,14 +846,8 @@ class rpReader:
                         spe_inchikey = pubchem_inchikey
                     if not spe_smiles:
                         spe_smiles = pubchem_smiles
-                    self.logger.warning('###############################')
-                    self.logger.warning('spe_xref: '+str(spe_xref))
-                    self.logger.warning('pubchem_xref: '+str(pubchem_xref))
-                    self.logger.warning('-----------------------------')
                     if not spe_xref:
                         spe_xref = pubchem_xref
-                    self.logger.warning('spe_xref: '+str(spe_xref))
-                    self.logger.warning('###############################')
                     #pass the information to create the species
                     rpsbml.createSpecies(meta,
                             compartment_id,
