@@ -171,6 +171,7 @@ def main_rp2(outputTar,
         rpreader.chemXref = rpcache.chemXref
         rpreader.compXref = rpcache.compXref
         rpreader.nameCompXref = rpcache.nameCompXref
+        rpreader.chebi_mnxm = rpcache.chebi_mnxm
         outputTar_bytes = io.BytesIO()
         #### MEM #####
         """
@@ -228,6 +229,7 @@ def main_tsv(outputTar,
         rpreader.chemXref = rpcache.chemXref
         rpreader.compXref = rpcache.compXref
         rpreader.nameCompXref = rpcache.nameCompXref
+        rpreader.chebi_mnxm = rpcache.chebi_mnxm
         with tempfile.TemporaryDirectory() as tmpOutputFolder:
             rpreader.TSVtoSBML(tsvfile,
                                tmpOutputFolder,

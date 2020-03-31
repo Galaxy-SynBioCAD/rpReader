@@ -33,7 +33,7 @@ Advanced options:
 To build the docker locally, run the following command in the root folder of the project:
 
 ```
-docker build -t brsynth/rpreader-standalone:dev -f Dockerfile .
+docker build -t brsynth/rpreader-standalone:pubchem -f Dockerfile .
 ```
 
 ### Running the test
@@ -41,7 +41,7 @@ docker build -t brsynth/rpreader-standalone:dev -f Dockerfile .
 To test untar the test.tar.xz file and run the following command:
 
 ```
-python run.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test/rp2_pathways.csv -rp2paths_pathways test/rp2paths_pathways.csv -outputTar test/test_rpReader.tar
+python run_rp2.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test/rp2_pathways.csv -rp2paths_pathways test/rp2paths_pathways.csv -output test/test_rpReader.tar
 ```
 
 ## Contributing
