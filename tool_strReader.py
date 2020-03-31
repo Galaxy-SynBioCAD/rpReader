@@ -31,13 +31,13 @@ if __name__ == "__main__":
     if params.maxRuleIds<0:
         logging.error('Max rule ID cannot be less than 0: '+str(params.maxRuleIds))
         exit(1)
-    rpToolServe.main_rp2(params.output,
-                         params.rp2paths_compounds,
-                         params.rp2_pathways,
-                         params.rp2paths_pathways,
-                         int(params.upper_flux_bound),
-                         int(params.lower_flux_bound),
-                         int(params.maxRuleIds),
-                         params.compartment_id,
-                         params.pathway_id,
-                         params.species_group_id)
+    rpToolServe.main(params.output,
+                     params.rp2paths_compounds,
+                     params.rp2_pathways,
+                     params.rp2paths_pathways,
+                     int(params.upper_flux_bound),
+                     int(params.lower_flux_bound),
+                     int(params.maxRuleIds),
+                     params.compartment_id,
+                     params.pathway_id,
+                     params.species_group_id)
