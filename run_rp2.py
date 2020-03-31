@@ -28,7 +28,7 @@ def main(rp2_pathways,
          pathway_id='rp_pathway',
          species_group_id='central_species'):
     docker_client = docker.from_env()
-    image_str = 'brsynth/rpreader-standalone:pubchem'
+    image_str = 'brsynth/rpreader-standalone:dev'
     try:
         image = docker_client.images.get(image_str)
     except docker.errors.ImageNotFound:

@@ -913,7 +913,7 @@ class rpReader:
     # @param inFile The input JSON file
     # @param mnxHeader Reorganise the results around the target MNX products
     # @return Dictionnary of SBML
-    def _parseTSV(self, inFile, mnxHeader=False):
+    def _parseTSV(self, inFile, remove_inchi_4p=False, mnxHeader=False):
         data = {}
         try:
             for row in csv.DictReader(open(inFile), delimiter='\t'):
@@ -931,7 +931,10 @@ class rpReader:
                 if not 'target' in data[pathID]:
                     data[pathID]['target'] = {}
                     data[pathID]['target']['name'] = row['target_name']
-                    data[pathID]['target']['inchi'] = row['target_structure']
+                    if remove_inchi_4p:
+                        data[pathID]['target']['inchi'] = '/'.join([row['target_structure'].split('/')[i] for i in range(len(row['target_structure'].split('/'))) if i<4])
+                    else:
+                        data[pathID]['target']['inchi'] = row['target_structure']
                 ####### step #########
                 try:
                     stepID = int(row['step'])
@@ -964,7 +967,10 @@ class rpReader:
                             row['substrate_structure'].split('_'),
                             row['substrate_dbref'].split(';')):
                         tmp = {}
-                        tmp['inchi'] = inchi.replace(' ', '')
+                        if remove_inchi_4p:
+                            tmp['inchi'] = '/'.join([inchi.split('/')[i] for i in range(len(inchi.split('/'))) if i<4])
+                        else:
+                            tmp['inchi'] = inchi.replace(' ', '')
                         tmp['name'] = name
                         tmp['dbref'] = {}
                         for dbref in dbrefs.split('|'):
@@ -1001,7 +1007,10 @@ class rpReader:
                             row['product_structure'].split('_'),
                             row['product_dbref'].split(';')):
                         tmp = {}
-                        tmp['inchi'] = inchi.replace(' ', '')
+                        if remove_inchi_4p:
+                            tmp['inchi'] = '/'.join([inchi.split('/')[i] for i in range(len(inchi.split('/'))) if i<4])
+                        else:
+                            tmp['inchi'] = inchi.replace(' ', '')
                         tmp['name'] = name
                         tmp['dbref'] = {}
                         for dbref in dbrefs.split('|'):
