@@ -43,11 +43,45 @@ class rpReader:
         self.nameCompXref = None
         self.chebi_mnxm = None
         self.pubchem_species = {}
+        #####################
+        #self.pubchem_sec_count = 0
+        #self.pubchem_sec_start = 0.0
+        self.pubchem_min_count = 0
+        self.pubchem_min_start = 0.0
 
 
     #######################################################################
     ############################# PRIVATE FUNCTIONS #######################
     #######################################################################
+
+
+    def _pubChemLimit(self):
+        '''
+        if self.pubchem_sec_start==0.0:
+            self.pubchem_sec_start = time.time()
+        '''
+        if self.pubchem_min_start==0.0:
+            self.pubchem_min_start = time.time()
+        #self.pubchem_sec_count += 1
+        self.pubchem_min_count += 1
+        '''
+        #### requests per second ####
+        if self.pubchem_sec_count>=5 and time.time()-self.pubchem_sec_start<=1.0:
+            time.sleep(1.0)
+            self.pubchem_sec_start = time.time()
+            self.pubchem_sec_count = 0
+        elif time.time()-self.pubchem_sec_start>1.0:
+            self.pubchem_sec_start = time.time()
+            self.pubchem_sec_count = 0
+        '''
+        #### requests per minute ####
+        if self.pubchem_min_count>=500 and time.time()-self.pubchem_min_start<=60.0:
+            time.sleep(60.0)
+            self.pubchem_min_start = time.time()
+            self.pubchem_min_count = 0
+        elif time.time()-self.pubchem_min_start>60.0:
+            self.pubchem_min_start = time.time()
+            self.pubchem_min_count = 0
 
     ## Try to retreive the xref from an inchi structure using pubchem
     #
@@ -59,6 +93,7 @@ class rpReader:
     Requests exceeding limits are rejected (HTTP 503 error)
     '''
     def _pubchemStrctSearch(self, strct, itype='inchi'):
+        self._pubChemLimit()
         try:
             r = requests.post('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/'+str(itype)+'/xrefs/SBURL/JSON', data={itype: strct})
         except requests.exceptions.ConnectionError as e:
