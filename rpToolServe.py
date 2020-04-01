@@ -26,6 +26,7 @@ def rp2Reader_mem(rpreader,
                   pathway_id,
                   compartment_id,
                   species_group_id,
+                  pubchem_search,
                   outputTar):
     rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
                                       rp2_pathways,
@@ -36,6 +37,7 @@ def rp2Reader_mem(rpreader,
                                       maxRuleIds,
                                       pathway_id,
                                       compartment_id,
+                                      pubchem_search,
                                       species_group_id)
     #pass the SBML results to a tar
     if rpsbml_paths=={}:
@@ -65,6 +67,7 @@ def rp2Reader_hdd(rpreader,
                   pathway_id,
                   compartment_id,
                   species_group_id,
+                  pubchem_search,
                   outputTar):
     with tempfile.TemporaryDirectory() as tmpOutputFolder:
         #Note the return here is {} and thus we can ignore it
@@ -77,7 +80,8 @@ def rp2Reader_hdd(rpreader,
                                           maxRuleIds,
                                           pathway_id,
                                           compartment_id,
-                                          species_group_id)
+                                          species_group_id,
+                                          pubchem_search)
         if len(glob.glob(tmpOutputFolder+'/*'))==0:
             return False
         with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
@@ -137,6 +141,7 @@ def main_string(outputTar,
                              pathway_id,
                              compartment_id,
                              species_group_id,
+                             pubchem_search,
                              outputTar_bytes)
         if not isOK:
             logging.error('Function returned an error')
@@ -159,7 +164,8 @@ def main_rp2(outputTar,
              maxRuleIds=2,
              compartment_id='MNXC3',
              pathway_id='rp_pathway',
-             species_group_id='central_species'):
+             species_group_id='central_species',
+             pubchem_search=False):
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
         rpcache = rpToolCache.rpToolCache()
@@ -199,6 +205,7 @@ def main_rp2(outputTar,
                              pathway_id,
                              compartment_id,
                              species_group_id,
+                             pubchem_search,
                              outputTar_bytes)
         if not isOK:
             logging.error('Function returned an error')

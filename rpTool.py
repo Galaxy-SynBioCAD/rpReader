@@ -164,7 +164,8 @@ class rpReader:
                   maxRuleIds=10,
                   pathway_id='rp_pathway',
                   compartment_id='MNXC3',
-                  species_group_id='central_species'):
+                  species_group_id='central_species',
+                  pubchem_search=False):
         rp_strc = self._compounds(rp2paths_compounds)
         rp_transformation = self._transformation(rp2_pathways)
         return self._outPathsToSBML(rp_strc,
@@ -176,7 +177,8 @@ class rpReader:
                                     maxRuleIds,
                                     pathway_id,
                                     compartment_id,
-                                    species_group_id)
+                                    species_group_id,
+                                    pubchem_search)
 
     ## Function to parse the compounds.txt file
     #
@@ -272,7 +274,8 @@ class rpReader:
             maxRuleIds=10,
             pathway_id='rp_pathway',
             compartment_id='MNXC3',
-            species_group_id='central_species'):
+            species_group_id='central_species',
+            pubchem_search=False):
         #try:
         rp_paths = {}
         #reactions = self.rr_reactionsingleRule.split('__')[1]s
@@ -418,7 +421,7 @@ class rpReader:
                     pubchem_xref = {}
                     try:
                         spe_inchi = rp_strc[meta]['inchi']
-                        if not spe_xref:
+                        if not spe_xref and pubchem_search:
                             try:
                                 pubchem_inchi = self.pubchem_species[spe_inchi]['inchi']
                                 pubchem_inchikey = self.pubchem_species[spe_inchi]['inchikey']
@@ -427,12 +430,9 @@ class rpReader:
                             except KeyError:
                                 pubres = self._pubchemStrctSearch(spe_inchi, 'inchi')
                                 if not chemName:
-                                    self.logger.info('Found the name')
                                     chemName = pubres['name']
                                 if 'chebi' in pubres['xref']:
                                     try:
-                                        logging.warning(pubres['xref']['chebi'])
-                                        logging.warning(self.chebi_mnxm[pubres['xref']['chebi'][0]])
                                         spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
                                     except KeyError:
                                         pass
@@ -447,7 +447,7 @@ class rpReader:
                     #inchikey
                     try:
                         spe_inchikey = rp_strc[meta]['inchikey']
-                        if not spe_xref:
+                        if not spe_xref and pubchem_search:
                             pubres = self._pubchemStrctSearch(spe_inchikey, 'inchikey')
                             if not chemName:
                                 chemName = pubres['name']
@@ -467,7 +467,7 @@ class rpReader:
                     #smiles
                     try:
                         spe_smiles = rp_strc[meta]['smiles']
-                        if spe_xref=={}:
+                        if not spe_xref and pubchem_search:
                             pubres = self._pubchemStrctSearch(spe_smiles, 'smiles')
                             if not chemName:
                                 chemName = pubres['name']
@@ -564,7 +564,8 @@ class rpReader:
                    lower_flux_bound=0,
                    pathway_id='rp_pathway',
                    compartment_id='MNXC3',
-                   species_group_id='central_species'):
+                   species_group_id='central_species',
+                   pubchem_search=False):
         #global parameters used for all parameters
         pathNum = 1
         rp_paths = {}
@@ -776,7 +777,7 @@ class rpReader:
                     #inchi
                     try:
                         spe_inchi = rp_strc[meta]['inchi']
-                        if not spe_xref:
+                        if not spe_xref and pubchem_search:
                             try:
                                 pubchem_inchi = self.pubchem_species[spe_inchi]['inchi']
                                 pubchem_inchikey = self.pubchem_species[spe_inchi]['inchikey']
@@ -803,7 +804,7 @@ class rpReader:
                     #inchikey
                     try:
                         spe_inchikey = rp_strc[meta]['inchikey']
-                        if not spe_xref:
+                        if not spe_xref and pubchem_search:
                             pubres = self._pubchemStrctSearch(spe_inchikey, 'inchikey')
                             if not chemName:
                                 chemName = pubres['name']
@@ -823,7 +824,7 @@ class rpReader:
                     #smiles
                     try:
                         spe_smiles = rp_strc[meta]['smiles']
-                        if spe_xref:
+                        if not spe_xref and pubchem_search:
                             pubres = self._pubchemStrctSearch(spe_smiles, 'smiles')
                             if not chemName:
                                 chemName = pubres['name']
