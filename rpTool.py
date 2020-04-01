@@ -76,6 +76,7 @@ class rpReader:
         '''
         #### requests per minute ####
         if self.pubchem_min_count>=500 and time.time()-self.pubchem_min_start<=60.0:
+            logging.warning('Reached 500 requests per minute for pubchem... waiting a minute')
             time.sleep(60.0)
             self.pubchem_min_start = time.time()
             self.pubchem_min_count = 0
