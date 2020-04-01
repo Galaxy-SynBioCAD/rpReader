@@ -17,15 +17,16 @@ import rpToolCache
 #
 #
 def rp2Reader_mem(rpreader,
-                  rp2paths_compounds, 
-                  rp2_pathways, 
-                  rp2paths_pathways, 
+                  rp2paths_compounds,
+                  rp2_pathways,
+                  rp2paths_pathways,
                   upper_flux_bound,
                   lower_flux_bound,
-                  maxRuleIds, 
-                  pathway_id, 
+                  maxRuleIds,
+                  pathway_id,
                   compartment_id,
                   species_group_id,
+                  pubchem_search,
                   outputTar):
     rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
                                       rp2_pathways,
@@ -36,6 +37,7 @@ def rp2Reader_mem(rpreader,
                                       maxRuleIds,
                                       pathway_id,
                                       compartment_id,
+                                      pubchem_search,
                                       species_group_id)
     #pass the SBML results to a tar
     if rpsbml_paths=={}:
@@ -56,15 +58,16 @@ def rp2Reader_mem(rpreader,
 #
 #
 def rp2Reader_hdd(rpreader,
-                  rp2paths_compounds, 
-                  rp2_pathways, 
-                  rp2paths_pathways, 
+                  rp2paths_compounds,
+                  rp2_pathways,
+                  rp2paths_pathways,
                   upper_flux_bound,
                   lower_flux_bound,
-                  maxRuleIds, 
-                  pathway_id, 
-                  compartment_id, 
+                  maxRuleIds,
+                  pathway_id,
+                  compartment_id,
                   species_group_id,
+                  pubchem_search,
                   outputTar):
     with tempfile.TemporaryDirectory() as tmpOutputFolder:
         #Note the return here is {} and thus we can ignore it
@@ -77,7 +80,8 @@ def rp2Reader_hdd(rpreader,
                                           maxRuleIds,
                                           pathway_id,
                                           compartment_id,
-                                          species_group_id)
+                                          species_group_id,
+                                          pubchem_search)
         if len(glob.glob(tmpOutputFolder+'/*'))==0:
             return False
         with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
@@ -88,18 +92,15 @@ def rp2Reader_hdd(rpreader,
                 ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
     return True
 
-
+'''
 ##
 #
 #
-def main(outputTar,
-         rp2paths_compounds, 
-         rp2_pathways, 
-         rp2paths_pathways, 
+def main_string(outputTar,
          upper_flux_bound=999999,
          lower_flux_bound=0,
-         maxRuleIds=2, 
-         compartment_id='MNXC3', 
+         maxRuleIds=2,
+         compartment_id='MNXC3',
          pathway_id='rp_pathway',
          species_group_id='central_species'):
         #pass the cache parameters to the rpReader
@@ -140,6 +141,7 @@ def main(outputTar,
                              pathway_id,
                              compartment_id,
                              species_group_id,
+                             pubchem_search,
                              outputTar_bytes)
         if not isOK:
             logging.error('Function returned an error')
@@ -148,3 +150,109 @@ def main(outputTar,
         #######################
         with open(outputTar, 'wb') as f:
             shutil.copyfileobj(outputTar_bytes, f, length=131072)
+'''
+
+##
+#
+#
+def main_rp2(outputTar,
+             rp2paths_compounds,
+             rp2_pathways,
+             rp2paths_pathways,
+             upper_flux_bound=999999,
+             lower_flux_bound=0,
+             maxRuleIds=2,
+             compartment_id='MNXC3',
+             pathway_id='rp_pathway',
+             species_group_id='central_species',
+             pubchem_search=False):
+        #pass the cache parameters to the rpReader
+        rpreader = rpReader.rpReader()
+        rpcache = rpToolCache.rpToolCache()
+        rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
+        rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
+        rpreader.mnxm_strc = rpcache.mnxm_strc
+        rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
+        rpreader.rr_reactions = rpcache.rr_reactions
+        rpreader.chemXref = rpcache.chemXref
+        rpreader.compXref = rpcache.compXref
+        rpreader.nameCompXref = rpcache.nameCompXref
+        rpreader.chebi_mnxm = rpcache.chebi_mnxm
+        outputTar_bytes = io.BytesIO()
+        #### MEM #####
+        """
+        if not rp2Reader_mem(rpreader,
+                    rp2paths_compounds,
+                    rp2_pathways,
+                    rp2paths_pathways,
+                    int(upper_flux_bound),
+                    int(lower_flux_bound),
+                    int(maxRuleIds),
+                    pathway_id,
+                    compartment_id,
+                    species_group_id,
+                    outputTar):
+            abort(204)
+        """
+        #### HDD #####
+        isOK = rp2Reader_hdd(rpreader,
+                             rp2paths_compounds,
+                             rp2_pathways,
+                             rp2paths_pathways,
+                             int(upper_flux_bound),
+                             int(lower_flux_bound),
+                             int(maxRuleIds),
+                             pathway_id,
+                             compartment_id,
+                             species_group_id,
+                             pubchem_search,
+                             outputTar_bytes)
+        if not isOK:
+            logging.error('Function returned an error')
+        ########IMPORTANT######
+        outputTar_bytes.seek(0)
+        #######################
+        with open(outputTar, 'wb') as f:
+            shutil.copyfileobj(outputTar_bytes, f, length=131072)
+
+##
+#
+#
+def main_tsv(outputTar,
+             tsvfile,
+             upper_flux_bound=999999,
+             lower_flux_bound=0,
+             compartment_id='MNXC3',
+             pathway_id='rp_pathway',
+             species_group_id='central_species'):
+        #pass the cache parameters to the rpReader
+        rpreader = rpReader.rpReader()
+        rpcache = rpToolCache.rpToolCache()
+        rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
+        rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
+        rpreader.mnxm_strc = rpcache.mnxm_strc
+        rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
+        rpreader.rr_reactions = rpcache.rr_reactions
+        rpreader.chemXref = rpcache.chemXref
+        rpreader.compXref = rpcache.compXref
+        rpreader.nameCompXref = rpcache.nameCompXref
+        rpreader.chebi_mnxm = rpcache.chebi_mnxm
+        with tempfile.TemporaryDirectory() as tmpOutputFolder:
+            rpreader.TSVtoSBML(tsvfile,
+                               tmpOutputFolder,
+                               upper_flux_bound,
+                               lower_flux_bound,
+                               compartment_id,
+                               pathway_id,
+                               species_group_id)
+            logging.error(glob.glob(tmpOutputFolder+'/*'))
+            logging.error(outputTar)
+            if len(glob.glob(tmpOutputFolder+'/*'))==0:
+                return False
+            with tarfile.open(outputTar, mode='w:xz') as ot:
+                for sbml_path in glob.glob(tmpOutputFolder+'/*'):
+                    fileName = str(sbml_path.split('/')[-1].replace('.sbml', '').replace('.rpsbml', '').replace('.xml', ''))+'.rpsbml.xml'
+                    info = tarfile.TarInfo(fileName)
+                    info.size = os.path.getsize(sbml_path)
+                    ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
+        return True

@@ -17,16 +17,17 @@ import docker
 ##
 #
 #
-def main(outputTar,
-         rp2paths_compounds,
-         rp2_pathways,
+def main(rp2_pathways,
          rp2paths_pathways,
-         upper_flux_bound,
-         lower_flux_bound,
-         maxRuleIds,
-         compartment_id,
-         pathway_id,
-         species_group_id):
+         rp2paths_compounds,
+         output,
+         upper_flux_bound=999999,
+         lower_flux_bound=0,
+         maxRuleIds=2,
+         compartment_id='MNXC3',
+         pathway_id='rp_pathway',
+         species_group_id='central_species',
+         pubchem_search='False'):
     docker_client = docker.from_env()
     image_str = 'brsynth/rpreader-standalone:dev'
     try:
@@ -62,14 +63,22 @@ def main(outputTar,
                    str(compartment_id),
                    '-species_group_id',
                    str(species_group_id),
-                   '-outputTar',
+                   '-pubchem_search',
+                   str(pubchem_search),
+                   '-output',
                    '/home/tmp_output/output.dat']
-        docker_client.containers.run(image_str, 
-                command, 
-                auto_remove=True, 
-                detach=False, 
-                volumes={tmpOutputFolder+'/': {'bind': '/home/tmp_output', 'mode': 'rw'}})
-        shutil.copy(tmpOutputFolder+'/output.dat', outputTar)
+        container = docker_client.containers.run(image_str,
+                                                 command,
+                                                 detach=True,
+                                                 stderr=True,
+                                                 volumes={tmpOutputFolder+'/': {'bind': '/home/tmp_output', 'mode': 'rw'}})
+        container.wait()
+        err = container.logs(stdout=False, stderr=True)
+        err_str = err.decode('utf-8') 
+        print(err_str)
+        if not 'ERROR' in err_str:
+            shutil.copy(tmpOutputFolder+'/output.dat', output)
+        container.remove()
 
 
 ##
@@ -86,15 +95,30 @@ if __name__ == "__main__":
     parser.add_argument('-pathway_id', type=str, default='rp_pathway')
     parser.add_argument('-compartment_id', type=str, default='MNXC3')
     parser.add_argument('-species_group_id', type=str, default='central_species')
-    parser.add_argument('-outputTar', type=str)
+    parser.add_argument('-pubchem_search', type=str, default='False')
+    parser.add_argument('-output', type=str)
     params = parser.parse_args()
-    main(params.outputTar,
-         params.rp2paths_compounds,
-         params.rp2_pathways,
+    if params.maxRuleIds<=0:
+        logging.error('Max rule ID cannot be less or equal than 0: '+str(params.maxRuleIds))
+        exit(1)
+    if params.pubchem_search=='True' or params.pubchem_search=='T' or params.pubchem_search=='true' or params.pubchem_search=='t':
+        pubchem_search = True
+    elif params.pubchem_search=='False' or params.pubchem_search=='F' or params.pubchem_search=='false' or params.pubchem_search=='f':
+        pubchem_search = False
+    else:
+        logging.error('Cannot interpret pubchem_search input: '+str(params.pubchem_search))
+        exit(1)
+    if params.maxRuleIds<=0:
+        logging.error('Max Rule ID cannot be less or equal than 0: '+str(params.maxRuleIds))
+        exit(1)
+    main(params.rp2_pathways,
          params.rp2paths_pathways,
+         params.rp2paths_compounds,
+         params.output,
          params.upper_flux_bound,
          params.lower_flux_bound,
          params.maxRuleIds,
          params.compartment_id,
          params.pathway_id,
-         params.species_group_id)
+         params.species_group_id,
+         pubchem_search)

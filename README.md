@@ -4,6 +4,30 @@
 
 RetroPath2.0 and rp2paths to SBML conversion tool. Takes for input the output of both RetroPath2.0 and rp2paths or RetroPath3.0 and generates a series of enriches SBML files with all the files contained within them. 
 
+## Input
+
+Required:
+* **-rp2paths_pathways**: (string) Path to the rp2paths pathways file
+* **-rp2paths_compounds**: (string) Path to the rp2paths compounds file
+* **-rp2_pathways**: (string) Path to the RetroPath2.0 pathways file
+
+Advanced options:
+* **-upper_flux_bound**: (integer, default=9999) Upper flux bound value
+* **-lower_flux_bound**: (integer, default=0) Lower flux bound value
+* **-maxRuleIds**: (integer, default=2) Number of subpaths per paths
+* **-pathway_id**: (string, default=rp_pathway) ID of the heterologous pathway
+* **-compartment_id**: (string, default=MNXC3 (i.e. cytoplasm)) Heterologous pathway compartment ID
+* **-species_group_id**: (string, default=central_species) ID of the central species, i.e. not cofactors, in the heterologous reactions
+
+## Output
+
+* **-outputTar**: (string) Path to the output tar.xz file
+
+## Dependencies
+
+* Base Docker Image: [brsynth/rpBase](https://hub.docker.com/r/brsynth/rpbase)
+* Cache Docker Image: [brsynth/rpCache](https://hub.docker.com/r/brsynth/rpcache)
+
 ## Building the docker
 
 To build the docker locally, run the following command in the root folder of the project:
@@ -17,7 +41,7 @@ docker build -t brsynth/rpreader-standalone:dev -f Dockerfile .
 To test untar the test.tar.xz file and run the following command:
 
 ```
-python run.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test/rp2_pathways.csv -rp2paths_pathways test/rp2paths_pathways.csv -outputTar test/test_rpReader.tar
+python run_rp2.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test/rp2_pathways.csv -rp2paths_pathways test/rp2paths_pathways.csv -output test/test_rpReader.tar
 ```
 
 ## Dependencies
