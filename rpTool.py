@@ -94,8 +94,8 @@ class rpReader:
     Requests exceeding limits are rejected (HTTP 503 error)
     '''
     def _pubchemStrctSearch(self, strct, itype='inchi'):
-        self._pubChemLimit()
         try:
+            self._pubChemLimit()
             r = requests.post('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/'+str(itype)+'/xrefs/SBURL/JSON', data={itype: strct})
         except requests.exceptions.ConnectionError as e:
             self.logger.warning('Overloading PubChem, waiting 5 seconds and trying again')
@@ -108,6 +108,7 @@ class rpReader:
         res_list = r.json()['InformationList']['Information']
         xref = {}
         if len(res_list)==1:
+            self._pubChemLimit()
             name_r = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/property/IUPACName,InChI,InChIKey,CanonicalSMILES/JSON')
             name_r_list = name_r.json()
             name = name_r_list['PropertyTable']['Properties'][0]['IUPACName']
