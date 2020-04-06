@@ -94,42 +94,32 @@ class rpReader:
     Requests exceeding limits are rejected (HTTP 503 error)
     '''
     def _pubchemStrctSearch(self, strct, itype='inchi'):
-        #try:
         self._pubChemLimit()
-        r = requests.post('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/'+str(itype)+'/xrefs/SBURL/JSON', data={itype: strct})
-        '''
-        except requests.exceptions.ConnectionError as e:
-            self.logger.warning('Overloading PubChem, waiting 5 seconds and trying again')
-            time.sleep(5)
-            try:
-                r = requests.post('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/'+str(itype)+'/xrefs/SBURL/JSON', data={itype: strct})
-            except requests.exceptions.ConnectionError as e:
-                selg.logger.warning(e)
-                return {}
-        '''
         try:
-            res_list = r.json()['InformationList']['Information']
+            r = requests.post('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/'+str(itype)+'/xrefs/SBURL/JSON', data={itype: strct})
+            res_list = r.json()
         except json.decoder.JSONDecodeError:
             self.logger.warning('JSON decode error')
             return {}
+        try:
+            res_list = res_list['InformationList']['Information']
         except KeyError:
             self.logger.warning('pubchem JSON keyerror: '+str(res_list))
             return {}
         xref = {}
         if len(res_list)==1:
-            #name_r = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/property/IUPACName,InChI,InChIKey,CanonicalSMILES/JSON')
-            #https://pubchem.ncbi.nlm.nih.gov/rest/pug/substance/sid/53789435/synonyms/TXT
             self._pubChemLimit()
             try:
                 prop = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/property/IUPACName,InChI,InChIKey,CanonicalSMILES/JSON')
                 prop_list = prop.json()
+            except json.decoder.JSONDecodeError:
+                self.logger.warning('JSON decode error')
+                return {}
+            try:
                 name = prop_list['PropertyTable']['Properties'][0]['IUPACName']
                 inchi = prop_list['PropertyTable']['Properties'][0]['InChI']
                 inchikey = prop_list['PropertyTable']['Properties'][0]['InChIKey']
                 smiles = prop_list['PropertyTable']['Properties'][0]['CanonicalSMILES']
-            except json.decoder.JSONDecodeError:
-                self.logger.warning('JSON decode error')
-                return {}
             except KeyError:
                 self.logger.warning('pubchem JSON keyerror: '+str(prop_list))
                 return {}
@@ -139,12 +129,14 @@ class rpReader:
                 self._pubChemLimit()
                 try:
                     syn = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/synonyms/JSON')
-                    syn_lst = syn.json()['InformationList']['Information'][0]['Synonym']
-                    syn_lst = [x for x in syn_lst if not 'CHEBI' in x and not x.isupper()]
-                    name = syn_lst[0] #need a better way instead of just the firs tone
+                    syn_lst = syn.json()
                 except json.decoder.JSONDecodeError:
                     self.logger.warning('pubchem JSON decode error')
                     return {}
+                try:
+                    syn_lst = syn_lst['InformationList']['Information'][0]['Synonym']
+                    syn_lst = [x for x in syn_lst if not 'CHEBI' in x and not x.isupper()]
+                    name = syn_lst[0] #need a better way instead of just the firs tone
                 except KeyError:
                     self.logger.warning('pubchem JSON keyerror: '+str(syn.json()))
                     return {}
