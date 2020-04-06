@@ -52,6 +52,8 @@ class rpToolCache(rpCache):
         ######### generate pickles ##########
         #inchikey_mnxm
         if not os.path.isfile(dirname+'/cache/inchikey_mnxm.pickle.gz'):
+            # open the already calculated (normally) mnxm_strc.pickle.gz
+            self.mnxm_strc = pickle.load(gzip.open(dirname+'/cache/mnxm_strc.pickle.gz', 'rb'))
             inchikey_mnxm = {}
             for mnxm in self.mnxm_strc:
                 if not self.mnxm_strc[mnxm]['inchikey'] in inchikey_mnxm:

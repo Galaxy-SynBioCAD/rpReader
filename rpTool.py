@@ -76,7 +76,7 @@ class rpReader:
         '''
         #### requests per minute ####
         if self.pubchem_min_count>=500 and time.time()-self.pubchem_min_start<=60.0:
-            logging.warning('Reached 500 requests per minute for pubchem... waiting a minute')
+            self.logger.warning('Reached 500 requests per minute for pubchem... waiting a minute')
             time.sleep(60.0)
             self.pubchem_min_start = time.time()
             self.pubchem_min_count = 0
@@ -107,14 +107,22 @@ class rpReader:
                 selg.logger.warning(e)
                 return {}
         '''
-        res_list = r.json()['InformationList']['Information']
+        try:
+            res_list = r.json()['InformationList']['Information']
+        except json.decoder.JSONDecodeError:
+            self.logger.warning('JSON decode error')
+            return {}
         xref = {}
         if len(res_list)==1:
             self._pubChemLimit()
             #name_r = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/property/IUPACName,InChI,InChIKey,CanonicalSMILES/JSON')
             #https://pubchem.ncbi.nlm.nih.gov/rest/pug/substance/sid/53789435/synonyms/TXT
             prop = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/property/IUPACName,InChI,InChIKey,CanonicalSMILES/JSON')
-            prop_list = prop.json()
+            try:
+                prop_list = prop.json()
+            except json.decoder.JSONDecodeError:
+                self.logger.warning('JSON decode error')
+                return {}
             name = prop_list['PropertyTable']['Properties'][0]['IUPACName']
             inchi = prop_list['PropertyTable']['Properties'][0]['InChI']
             inchikey = prop_list['PropertyTable']['Properties'][0]['InChIKey']
@@ -124,7 +132,11 @@ class rpReader:
             if len(name)>30:
                 self._pubChemLimit()
                 syn = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/synonyms/JSON')
-                syn_lst = syn.json()['InformationList']['Information'][0]['Synonym']
+                try:
+                    syn_lst = syn.json()['InformationList']['Information'][0]['Synonym']
+                except json.decoder.JSONDecodeError:
+                    self.logger.warning('JSON decode error')
+                    return {}
                 syn_lst = [x for x in syn_lst if not 'CHEBI' in x and not x.isupper()]
                 try:
                     name = syn_lst[0] #need a better way instead of just the firs tone
@@ -495,6 +507,7 @@ class rpReader:
                                 if not pubchem_smiles:
                                     pubchem_smiles = pubres['smiles']
                     except KeyError:
+                        self.logger.warning('Bad results from pubchem results')
                         pass
                     #inchikey
                     try:
@@ -515,6 +528,7 @@ class rpReader:
                             if not pubchem_smiles:
                                 pubchem_smiles = pubres['smiles']
                     except KeyError:
+                        self.logger.warning('Bad results from pubchem results')
                         pass
                     #smiles
                     try:
@@ -535,6 +549,7 @@ class rpReader:
                             if not pubchem_inchikey:
                                 pubchem_inchikey = pubres['inchikey']
                     except KeyError:
+                        self.logger.warning('Bad results from pubchem results')
                         pass
                     if not spe_inchi:
                         spe_inchi = pubchem_inchi
@@ -802,7 +817,7 @@ class rpReader:
                             cid = sorted(self.inchikey_mnxm[sink_species[pathNum][meta]], key=lambda x: int(x[4:]))[0]
                             meta_to_cid[meta] = cid
                         except KeyError:
-                            self.logger.error('Cannot find sink compound: '+str(meta))
+                            self.logger.warning('Cannot find sink compound: '+str(meta))
                             continue
                             #return False
                     else:
@@ -853,6 +868,7 @@ class rpReader:
                                 if not pubchem_smiles:
                                     pubchem_smiles = pubres['smiles']
                     except KeyError:
+                        self.logger.warning('Bad results from pubchem results')
                         pass
                     #inchikey
                     try:
@@ -873,6 +889,7 @@ class rpReader:
                             if not pubchem_smiles:
                                 pubchem_smiles = pubres['smiles']
                     except KeyError:
+                        self.logger.warning('Bad results from pubchem results')
                         pass
                     #smiles
                     try:
@@ -893,6 +910,7 @@ class rpReader:
                             if not pubchem_inchikey:
                                 pubchem_inchikey = pubres['inchikey']
                     except KeyError:
+                        self.logger.warning('Bad results from pubchem results')
                         pass
                     if not spe_inchi:
                         spe_inchi = pubchem_inchi
