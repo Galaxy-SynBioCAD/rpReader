@@ -42,7 +42,9 @@ class rpReader:
         self.compXref = None
         self.nameCompXref = None
         self.chebi_mnxm = None
-        self.pubchem_species = {}
+        self.pubchem_inchi = {}
+        self.pubchem_inchikey = {}
+        self.pubchem_smiles = {}
         #####################
         #self.pubchem_sec_count = 0
         #self.pubchem_sec_start = 0.0
@@ -485,71 +487,98 @@ class rpReader:
                     pubchem_xref = {}
                     try:
                         spe_inchi = rp_strc[meta]['inchi']
-                        if not spe_xref and pubchem_search:
-                            try:
-                                pubchem_inchi = self.pubchem_species[spe_inchi]['inchi']
-                                pubchem_inchikey = self.pubchem_species[spe_inchi]['inchikey']
-                                pubchem_smiles = self.pubchem_species[spe_inchi]['smiles']
-                                pubchem_xref = self.pubchem_species[spe_inchi]['xref'] 
-                            except KeyError:
-                                pubres = self._pubchemStrctSearch(spe_inchi, 'inchi')
-                                if not chemName:
-                                    chemName = pubres['name']
-                                if 'chebi' in pubres['xref']:
-                                    try:
-                                        spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
-                                    except KeyError:
-                                        pass
-                                if not pubchem_xref:
-                                    pubchem_xref = pubres['xref']
-                                if not pubchem_inchikey:
-                                    pubchem_inchikey = pubres['inchikey']
-                                if not pubchem_smiles:
-                                    pubchem_smiles = pubres['smiles']
+                        try:
+                            if not spe_xref and pubchem_search:
+                                try:
+                                    pubchem_inchi = self.pubchem_inchi[spe_inchi]['inchi']
+                                    pubchem_inchikey = self.pubchem_inchi[spe_inchi]['inchikey']
+                                    pubchem_smiles = self.pubchem_inchi[spe_inchi]['smiles']
+                                    pubchem_xref = self.pubchem_inchi[spe_inchi]['xref'] 
+                                except KeyError:
+                                    if not self.pubchem_inchi[spe_inchi]=={}:
+                                        pubres = self._pubchemStrctSearch(spe_inchi, 'inchi')
+                                        if not chemName:
+                                            chemName = pubres['name']
+                                        if 'chebi' in pubres['xref']:
+                                            try:
+                                                spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                            except KeyError:
+                                                pass
+                                        if not pubchem_xref:
+                                            pubchem_xref = pubres['xref']
+                                        if not pubchem_inchikey:
+                                            pubchem_inchikey = pubres['inchikey']
+                                        if not pubchem_smiles:
+                                            pubchem_smiles = pubres['smiles']
+                        except KeyError:
+                            self.logger.warning('Bad results from pubchem results')
+                            self.pubchem_inchi[spe_inchi] = {}
+                            pass
                     except KeyError:
-                        self.logger.warning('Bad results from pubchem results')
                         pass
                     #inchikey
                     try:
                         spe_inchikey = rp_strc[meta]['inchikey']
-                        if not spe_xref and pubchem_search:
-                            pubres = self._pubchemStrctSearch(spe_inchikey, 'inchikey')
-                            if not chemName:
-                                chemName = pubres['name']
-                            if 'chebi' in pubres['xref']:
+                        try:
+                            if not spe_xref and pubchem_search:
                                 try:
-                                    spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                    pubchem_inchi = self.pubchem_inchikey[spe_inchi]['inchi']
+                                    pubchem_inchikey = self.pubchem_inchikey[spe_inchi]['inchikey']
+                                    pubchem_smiles = self.pubchem_inchikey[spe_inchi]['smiles']
+                                    pubchem_xref = self.pubchem_inchikey[spe_inchi]['xref'] 
                                 except KeyError:
-                                    pass
-                            if not pubchem_xref:
-                                pubchem_xref = pubres['xref']
-                            if not pubchem_inchi:
-                                pubchem_inchi = pubres['inchi']
-                            if not pubchem_smiles:
-                                pubchem_smiles = pubres['smiles']
+                                    if not self.pubchem_inchikey[spe_inchikey]=={}:
+                                        pubres = self._pubchemStrctSearch(spe_inchikey, 'inchikey')
+                                        if not chemName:
+                                            chemName = pubres['name']
+                                        if 'chebi' in pubres['xref']:
+                                            try:
+                                                spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                            except KeyError:
+                                                pass
+                                        if not pubchem_xref:
+                                            pubchem_xref = pubres['xref']
+                                        if not pubchem_inchi:
+                                            pubchem_inchi = pubres['inchi']
+                                        if not pubchem_smiles:
+                                            pubchem_smiles = pubres['smiles']
+                        except KeyError:
+                            self.logger.warning('Bad results from pubchem results')
+                            self.pubchem_inchikey[spe_inchikey] = {}
+                            pass
                     except KeyError:
-                        self.logger.warning('Bad results from pubchem results')
                         pass
                     #smiles
                     try:
                         spe_smiles = rp_strc[meta]['smiles']
-                        if not spe_xref and pubchem_search:
-                            pubres = self._pubchemStrctSearch(spe_smiles, 'smiles')
-                            if not chemName:
-                                chemName = pubres['name']
-                            if 'chebi' in pubres['xref']:
+                        try:
+                            if not spe_xref and pubchem_search:
                                 try:
-                                    spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                    pubchem_inchi = self.pubchem_inchikey[spe_inchi]['inchi']
+                                    pubchem_inchikey = self.pubchem_inchikey[spe_inchi]['inchikey']
+                                    pubchem_smiles = self.pubchem_inchikey[spe_inchi]['smiles']
+                                    pubchem_xref = self.pubchem_inchikey[spe_inchi]['xref'] 
                                 except KeyError:
-                                    pass
-                            if not pubchem_xref:
-                                pubchem_xref = pubres['xref']
-                            if not pubchem_inchi:
-                                pubchem_inchi = pubres['inchi']
-                            if not pubchem_inchikey:
-                                pubchem_inchikey = pubres['inchikey']
+                                    if not self.pubchem_smiles[spe_smiles]=={}:
+                                        pubres = self._pubchemStrctSearch(spe_smiles, 'smiles')
+                                        if not chemName:
+                                            chemName = pubres['name']
+                                        if 'chebi' in pubres['xref']:
+                                            try:
+                                                spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                            except KeyError:
+                                                pass
+                                        if not pubchem_xref:
+                                            pubchem_xref = pubres['xref']
+                                        if not pubchem_inchi:
+                                            pubchem_inchi = pubres['inchi']
+                                        if not pubchem_inchikey:
+                                            pubchem_inchikey = pubres['inchikey']
+                        except KeyError:
+                            self.pubchem_smiles[spe_smiles] = {}
+                            self.logger.warning('Bad results from pubchem results')
+                            pass
                     except KeyError:
-                        self.logger.warning('Bad results from pubchem results')
                         pass
                     if not spe_inchi:
                         spe_inchi = pubchem_inchi
@@ -558,10 +587,16 @@ class rpReader:
                     if not spe_smiles:
                         spe_smiles = pubchem_smiles
                     if pubchem_inchi:
-                        self.pubchem_species[pubchem_inchi] = {'inchi': pubchem_inchi, 'smiles': pubchem_smiles, 'inchikey': pubchem_inchikey, 'xref': pubchem_xref}
+                        self.pubchem_inchi[pubchem_inchi] = {'inchi': pubchem_inchi, 'smiles': pubchem_smiles, 'inchikey': pubchem_inchikey, 'xref': pubchem_xref}
+                    if pubchem_inchikey:
+                        self.pubchem_inchikey[pubchem_inchikey] = {'inchi': pubchem_inchi, 'smiles': pubchem_smiles, 'inchikey': pubchem_inchikey, 'xref': pubchem_xref}
+                    if pubchem_smiles:
+                        self.pubchem_smiles[pubchem_smiles] = {'inchi': pubchem_inchi, 'smiles': pubchem_smiles, 'inchikey': pubchem_inchikey, 'xref': pubchem_xref}
                     if not spe_xref:
                         spe_xref = pubchem_xref
                     #pass the information to create the species
+                    if chemName:
+                        chemName = chemName.replace("'", "")
                     rpsbml.createSpecies(meta,
                                          compartment_id,
                                          chemName,
@@ -847,10 +882,11 @@ class rpReader:
                         spe_inchi = rp_strc[meta]['inchi']
                         if not spe_xref and pubchem_search:
                             try:
-                                pubchem_inchi = self.pubchem_species[spe_inchi]['inchi']
-                                pubchem_inchikey = self.pubchem_species[spe_inchi]['inchikey']
-                                pubchem_smiles = self.pubchem_species[spe_inchi]['smiles']
-                                pubchem_xref = self.pubchem_species[spe_inchi]['xref'] 
+                                if not self.pubchem_inchi[spe_inchi]=={}:
+                                    pubchem_inchi = self.pubchem_inchi[spe_inchi]['inchi']
+                                    pubchem_inchikey = self.pubchem_inchi[spe_inchi]['inchikey']
+                                    pubchem_smiles = self.pubchem_inchi[spe_inchi]['smiles']
+                                    pubchem_xref = self.pubchem_inchi[spe_inchi]['xref'] 
                             except KeyError:
                                 pubres = self._pubchemStrctSearch(spe_inchi, 'inchi')
                                 if not chemName:
