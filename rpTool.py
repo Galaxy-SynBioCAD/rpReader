@@ -788,7 +788,8 @@ class rpReader:
                             meta_to_cid[meta] = cid
                         except KeyError:
                             self.logger.error('Cannot find sink compound: '+str(meta))
-                            return False
+                            continue
+                            #return False
                     else:
                         cid = meta
                     # retreive the name of the molecule

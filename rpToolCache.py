@@ -42,7 +42,6 @@ class rpToolCache(rpCache):
     # @param The oject pointer
     # @return Boolean detemining the success of the function or not
     def _loadCache(self, fetchInputFiles=False):
-
         dirname = os.path.dirname(os.path.abspath( __file__ ))
         if not os.path.exists(os.path.join(dirname, 'cache')):
             os.mkdir(os.path.exists(os.path.join(dirname, 'cache')))
@@ -50,14 +49,8 @@ class rpToolCache(rpCache):
         if not os.path.isfile(dirname+'/input_cache/comp_xref.tsv') or fetchInputFiles:
             urllib.request.urlretrieve('https://www.metanetx.org/cgi-bin/mnxget/mnxref/comp_xref.tsv',
                                        dirname+'/input_cache/comp_xref.tsv')
-
-        ###################### Populate the cache #################################
-        if not os.path.isfile(dirname+'/cache/inchikey_mnxm.pickle.gz'):
-            pickle.dump(self.mnx_strc(dirname+'/input_cache/rr_compounds.tsv',
-                                      dirname+'/input_cache/chem_prop.tsv'),
-                        gzip.open(dirname+'/cache/inchikey_mnxm.pickle.gz','wb'))
-        self.inchikey_mnxm = pickle.load(gzip.open(dirname+'/cache/inchikey_mnxm.pickle.gz', 'rb'))
-
+        ######### generate pickles ##########
+        #inchikey_mnxm
         if not os.path.isfile(dirname+'/cache/inchikey_mnxm.pickle.gz'):
             inchikey_mnxm = {}
             for mnxm in self.mnxm_strc:
@@ -65,15 +58,14 @@ class rpToolCache(rpCache):
                     inchikey_mnxm[self.mnxm_strc[mnxm]['inchikey']] = []
                 inchikey_mnxm[self.mnxm_strc[mnxm]['inchikey']].append(mnxm)
             pickle.dump(inchikey_mnxm, gzip.open(dirname+'/cache/inchikey_mnxm.pickle.gz','wb'))
-
+        self.inchikey_mnxm = pickle.load(gzip.open(dirname+'/cache/inchikey_mnxm.pickle.gz', 'rb'))
+        #compartment xref
         if not os.path.isfile(dirname+'/cache/compXref.pickle.gz') or not os.path.isfile(dirname+'/cache/nameCompXref.pickle.gz'):
             name_pubDB_xref, compName_mnxc = self.mnx_compXref(dirname+'/input_cache/comp_xref.tsv')
             pickle.dump(name_pubDB_xref, gzip.open(dirname+'/cache/compXref.pickle.gz','wb'))
             pickle.dump(compName_mnxc, gzip.open(dirname+'/cache/nameCompXref.pickle.gz','wb'))
         self.compXref = pickle.load(gzip.open(dirname+'/cache/compXref.pickle.gz', 'rb'))
-
         self.nameCompXref = pickle.load(gzip.open(dirname+'/cache/nameCompXref.pickle.gz', 'rb'))
-
         return super()._loadCache(fetchInputFiles)
 
 
