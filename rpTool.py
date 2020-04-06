@@ -6,7 +6,7 @@ import gzip
 from rdkit.Chem import MolFromSmiles, MolFromInchi, MolToSmiles, MolToInchi, MolToInchiKey, AddHs
 import sys
 import random
-#import json
+import json
 import copy
 #from .setup_self.logger import self.logger
 import logging
@@ -112,34 +112,42 @@ class rpReader:
         except json.decoder.JSONDecodeError:
             self.logger.warning('JSON decode error')
             return {}
+        except KeyError:
+            self.logger.warning('pubchem JSON keyerror: '+str(res_list))
+            return {}
         xref = {}
         if len(res_list)==1:
-            self._pubChemLimit()
             #name_r = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/property/IUPACName,InChI,InChIKey,CanonicalSMILES/JSON')
             #https://pubchem.ncbi.nlm.nih.gov/rest/pug/substance/sid/53789435/synonyms/TXT
-            prop = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/property/IUPACName,InChI,InChIKey,CanonicalSMILES/JSON')
+            self._pubChemLimit()
             try:
+                prop = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/property/IUPACName,InChI,InChIKey,CanonicalSMILES/JSON')
                 prop_list = prop.json()
+                name = prop_list['PropertyTable']['Properties'][0]['IUPACName']
+                inchi = prop_list['PropertyTable']['Properties'][0]['InChI']
+                inchikey = prop_list['PropertyTable']['Properties'][0]['InChIKey']
+                smiles = prop_list['PropertyTable']['Properties'][0]['CanonicalSMILES']
             except json.decoder.JSONDecodeError:
                 self.logger.warning('JSON decode error')
                 return {}
-            name = prop_list['PropertyTable']['Properties'][0]['IUPACName']
-            inchi = prop_list['PropertyTable']['Properties'][0]['InChI']
-            inchikey = prop_list['PropertyTable']['Properties'][0]['InChIKey']
-            smiles = prop_list['PropertyTable']['Properties'][0]['CanonicalSMILES']
+            except KeyError:
+                self.logger.warning('pubchem JSON keyerror: '+str(prop_list))
+                return {}
             #TODO: need to determine how long cobra cannot handle this
             #TODO: determine if names that are too long is the problem and if not remove this part
             if len(name)>30:
                 self._pubChemLimit()
-                syn = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/synonyms/JSON')
                 try:
+                    syn = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/synonyms/JSON')
                     syn_lst = syn.json()['InformationList']['Information'][0]['Synonym']
-                except json.decoder.JSONDecodeError:
-                    self.logger.warning('JSON decode error')
-                    return {}
-                syn_lst = [x for x in syn_lst if not 'CHEBI' in x and not x.isupper()]
-                try:
+                    syn_lst = [x for x in syn_lst if not 'CHEBI' in x and not x.isupper()]
                     name = syn_lst[0] #need a better way instead of just the firs tone
+                except json.decoder.JSONDecodeError:
+                    self.logger.warning('pubchem JSON decode error')
+                    return {}
+                except KeyError:
+                    self.logger.warning('pubchem JSON keyerror: '+str(syn.json()))
+                    return {}
                 except IndexError:
                     name = ''
             xref['pubchem'] = [str(res_list[0]['CID'])]
