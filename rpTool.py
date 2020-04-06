@@ -94,9 +94,10 @@ class rpReader:
     Requests exceeding limits are rejected (HTTP 503 error)
     '''
     def _pubchemStrctSearch(self, strct, itype='inchi'):
-        try:
-            self._pubChemLimit()
-            r = requests.post('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/'+str(itype)+'/xrefs/SBURL/JSON', data={itype: strct})
+        #try:
+        self._pubChemLimit()
+        r = requests.post('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/'+str(itype)+'/xrefs/SBURL/JSON', data={itype: strct})
+        '''
         except requests.exceptions.ConnectionError as e:
             self.logger.warning('Overloading PubChem, waiting 5 seconds and trying again')
             time.sleep(5)
@@ -105,16 +106,30 @@ class rpReader:
             except requests.exceptions.ConnectionError as e:
                 selg.logger.warning(e)
                 return {}
+        '''
         res_list = r.json()['InformationList']['Information']
         xref = {}
         if len(res_list)==1:
             self._pubChemLimit()
-            name_r = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/property/IUPACName,InChI,InChIKey,CanonicalSMILES/JSON')
-            name_r_list = name_r.json()
-            name = name_r_list['PropertyTable']['Properties'][0]['IUPACName']
-            inchi = name_r_list['PropertyTable']['Properties'][0]['InChI']
-            inchikey = name_r_list['PropertyTable']['Properties'][0]['InChIKey']
-            smiles = name_r_list['PropertyTable']['Properties'][0]['CanonicalSMILES']
+            #name_r = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/property/IUPACName,InChI,InChIKey,CanonicalSMILES/JSON')
+            #https://pubchem.ncbi.nlm.nih.gov/rest/pug/substance/sid/53789435/synonyms/TXT
+            prop = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/property/IUPACName,InChI,InChIKey,CanonicalSMILES/JSON')
+            prop_list = prop.json()
+            name = prop_list['PropertyTable']['Properties'][0]['IUPACName']
+            inchi = prop_list['PropertyTable']['Properties'][0]['InChI']
+            inchikey = prop_list['PropertyTable']['Properties'][0]['InChIKey']
+            smiles = prop_list['PropertyTable']['Properties'][0]['CanonicalSMILES']
+            #TODO: need to determine how long cobra cannot handle this
+            #TODO: determine if names that are too long is the problem and if not remove this part
+            if len(name)>30:
+                self._pubChemLimit()
+                syn = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/synonyms/JSON')
+                syn_lst = syn.json()['InformationList']['Information'][0]['Synonym']
+                syn_lst = [x for x in syn_lst if not 'CHEBI' in x and not x.isupper()]
+                try:
+                    name = syn_lst[0] #need a better way instead of just the firs tone
+                except IndexError:
+                    name = ''
             xref['pubchem'] = [str(res_list[0]['CID'])]
             for url in res_list[0]['SBURL']:
                 if 'https://biocyc.org/compound?orgid=META&id=' in url:
@@ -533,13 +548,13 @@ class rpReader:
                         spe_xref = pubchem_xref
                     #pass the information to create the species
                     rpsbml.createSpecies(meta,
-                            compartment_id,
-                            chemName,
-                            spe_xref,
-                            spe_inchi,
-                            spe_inchikey,
-                            spe_smiles,
-                            species_group_id)
+                                         compartment_id,
+                                         chemName,
+                                         spe_xref,
+                                         spe_inchi,
+                                         spe_inchikey,
+                                         spe_smiles,
+                                         species_group_id)
                 #4) add the complete reactions and their annotations
                 for step in steps:
                     #add the substep to the model
@@ -554,19 +569,19 @@ class rpReader:
                             pathway_id)
                 #5) adding the consumption of the target
                 targetStep = {'rule_id': None,
-                        'left': {[i for i in all_meta if i[:6]=='TARGET'][0]: 1},
-                        'right': [],
-                        'step': None,
-                        'sub_step': None,
-                        'path_id': None,
-                        'transformation_id': None,
-                        'rule_score': None,
-                        'rule_ori_reac': None}
+                              'left': {[i for i in all_meta if i[:6]=='TARGET'][0]: 1},
+                              'right': [],
+                              'step': None,
+                              'sub_step': None,
+                              'path_id': None,
+                              'transformation_id': None,
+                              'rule_score': None,
+                              'rule_ori_reac': None}
                 rpsbml.createReaction('RP1_sink',
-                        upper_flux_bound,
-                        lower_flux_bound,
-                        targetStep,
-                        compartment_id)
+                                      upper_flux_bound,
+                                      lower_flux_bound,
+                                      targetStep,
+                                      compartment_id)
                 #6) Add the flux objectives
                 if tmpOutputFolder:
                     rpsbml.writeSBML(tmpOutputFolder)
@@ -647,14 +662,14 @@ class rpReader:
                     #NOTE: pick the rule with the highest diameter
                     r_id = sorted(node['data']['Rule ID'], key=lambda x: int(x.split('-')[-2]), reverse=True)[0]
                     reactions_list[pathNum][node['data']['id']] = {'rule_id': r_id,
-                        'rule_ori_reac': None,
-                        'right': {},
-                        'left': {},
-                        'path_id': pathNum,
-                        'step': None,
-                        'sub_step': None,
-                        'transformation_id': None,
-                        'rule_score': node['data']['Score']}
+                                                                   'rule_ori_reac': None,
+                                                                   'right': {},
+                                                                   'left': {},
+                                                                   'path_id': pathNum,
+                                                                   'step': None,
+                                                                   'sub_step': None,
+                                                                   'transformation_id': None,
+                                                                   'rule_score': node['data']['Score']}
                     reac_smiles[pathNum][r_id] = node['data']['Reaction SMILES']
                     reac_ecs[pathNum][r_id] = list(filter(None, [i for i in node['data']['EC number']]))
                     stochio[node['data']['id']] = {}
@@ -765,11 +780,11 @@ class rpReader:
                 ##### TODO: give the user more control over a generic model creation:
                 #   -> special attention to the compartment
                 rpsbml.genericModel('RetroPath_Pathway_'+str(path_id)+'_'+str(altPathNum),
-                        'RP_model_'+str(path_id)+'_'+str(altPathNum),
-                        self.compXref[mnxc],
-                        compartment_id,
-                        upper_flux_bound,
-                        lower_flux_bound)
+                                    'RP_model_'+str(path_id)+'_'+str(altPathNum),
+                                    self.compXref[mnxc],
+                                    compartment_id,
+                                    upper_flux_bound,
+                                    lower_flux_bound)
                 #2) create the pathway (groups)
                 rpsbml.createPathway(pathway_id)
                 rpsbml.createPathway(species_group_id)
