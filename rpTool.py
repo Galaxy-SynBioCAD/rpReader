@@ -6,13 +6,15 @@ import gzip
 from rdkit.Chem import MolFromSmiles, MolFromInchi, MolToSmiles, MolToInchi, MolToInchiKey, AddHs
 import sys
 import random
-#import json
+import json
 import copy
 #from .setup_self.logger import self.logger
 import logging
 import io
 import re
 #import tarfile
+import requests
+import time
 
 import rpSBML
 
@@ -39,11 +41,135 @@ class rpReader:
         self.chemXref = None
         self.compXref = None
         self.nameCompXref = None
+        self.chebi_mnxm = None
+        self.pubchem_inchi = {}
+        self.pubchem_inchikey = {}
+        self.pubchem_smiles = {}
+        #####################
+        #self.pubchem_sec_count = 0
+        #self.pubchem_sec_start = 0.0
+        self.pubchem_min_count = 0
+        self.pubchem_min_start = 0.0
 
 
     #######################################################################
     ############################# PRIVATE FUNCTIONS #######################
     #######################################################################
+
+
+    def _pubChemLimit(self):
+        '''
+        if self.pubchem_sec_start==0.0:
+            self.pubchem_sec_start = time.time()
+        '''
+        if self.pubchem_min_start==0.0:
+            self.pubchem_min_start = time.time()
+        #self.pubchem_sec_count += 1
+        self.pubchem_min_count += 1
+        '''
+        #### requests per second ####
+        if self.pubchem_sec_count>=5 and time.time()-self.pubchem_sec_start<=1.0:
+            time.sleep(1.0)
+            self.pubchem_sec_start = time.time()
+            self.pubchem_sec_count = 0
+        elif time.time()-self.pubchem_sec_start>1.0:
+            self.pubchem_sec_start = time.time()
+            self.pubchem_sec_count = 0
+        '''
+        #### requests per minute ####
+        if self.pubchem_min_count>=500 and time.time()-self.pubchem_min_start<=60.0:
+            self.logger.warning('Reached 500 requests per minute for pubchem... waiting a minute')
+            time.sleep(60.0)
+            self.pubchem_min_start = time.time()
+            self.pubchem_min_count = 0
+        elif time.time()-self.pubchem_min_start>60.0:
+            self.pubchem_min_start = time.time()
+            self.pubchem_min_count = 0
+
+    ## Try to retreive the xref from an inchi structure using pubchem
+    #
+    #
+    '''
+    No more than 5 requests per second.
+    No more than 400 requests per minute.
+    No longer than 300 second running time per minute.
+    Requests exceeding limits are rejected (HTTP 503 error)
+    '''
+    def _pubchemStrctSearch(self, strct, itype='inchi'):
+        self._pubChemLimit()
+        try:
+            r = requests.post('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/'+str(itype)+'/xrefs/SBURL/JSON', data={itype: strct})
+            res_list = r.json()
+        except json.decoder.JSONDecodeError:
+            self.logger.warning('JSON decode error')
+            return {}
+        try:
+            res_list = res_list['InformationList']['Information']
+        except KeyError:
+            self.logger.warning('pubchem JSON keyerror: '+str(res_list))
+            return {}
+        xref = {}
+        if len(res_list)==1:
+            self._pubChemLimit()
+            try:
+                prop = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/property/IUPACName,InChI,InChIKey,CanonicalSMILES/JSON')
+                prop_list = prop.json()
+            except json.decoder.JSONDecodeError:
+                self.logger.warning('JSON decode error')
+                return {}
+            try:
+                name = prop_list['PropertyTable']['Properties'][0]['IUPACName']
+                inchi = prop_list['PropertyTable']['Properties'][0]['InChI']
+                inchikey = prop_list['PropertyTable']['Properties'][0]['InChIKey']
+                smiles = prop_list['PropertyTable']['Properties'][0]['CanonicalSMILES']
+            except KeyError:
+                self.logger.warning('pubchem JSON keyerror: '+str(prop_list))
+                return {}
+            #TODO: need to determine how long cobra cannot handle this
+            #TODO: determine if names that are too long is the problem and if not remove this part
+            if len(name)>30:
+                self._pubChemLimit()
+                try:
+                    syn = requests.get('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+str(res_list[0]['CID'])+'/synonyms/JSON')
+                    syn_lst = syn.json()
+                except json.decoder.JSONDecodeError:
+                    self.logger.warning('pubchem JSON decode error')
+                    return {}
+                try:
+                    syn_lst = syn_lst['InformationList']['Information'][0]['Synonym']
+                    syn_lst = [x for x in syn_lst if not 'CHEBI' in x and not x.isupper()]
+                    name = syn_lst[0] #need a better way instead of just the firs tone
+                except KeyError:
+                    self.logger.warning('pubchem JSON keyerror: '+str(syn.json()))
+                    return {}
+                except IndexError:
+                    name = ''
+            xref['pubchem'] = [str(res_list[0]['CID'])]
+            for url in res_list[0]['SBURL']:
+                if 'https://biocyc.org/compound?orgid=META&id=' in url:
+                    if 'biocyc' not in xref:
+                        xref['biocyc'] = []
+                    xref['biocyc'].append(url.replace('https://biocyc.org/compound?orgid=META&id=', ''))
+                if 'http://www.hmdb.ca/metabolites/' in url:
+                    if 'hmdb' not in xref:
+                        xref['hmdb'] = []
+                    xref['hmdb'].append(url.replace('http://www.hmdb.ca/metabolites/', ''))
+                if 'http://www.genome.jp/dbget-bin/www_bget?cpd:' in url:
+                    if 'kegg_c' not in xref:
+                        xref['kegg_c'] = []
+                    xref['kegg_c'].append(url.replace('http://www.genome.jp/dbget-bin/www_bget?cpd:', ''))
+                if 'http://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:' in url:
+                    if 'chebi' not in xref:
+                        xref['chebi'] = []
+                    xref['chebi'].append(url.replace('http://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:', ''))
+        elif len(res_list)==0:
+            self.logger.warning('Could not find results for: '+str(strct))
+            return {}
+        else:
+            self.logger.warning('There are more than one result for '+str(strct)+'... Ignoring')
+            return {}
+        return {'name': name, 'inchi': inchi, 'inchikey': inchikey, 'smiles': smiles, 'xref': xref}
+
 
     ## Convert chemical depiction to others type of depictions
     #
@@ -104,7 +230,8 @@ class rpReader:
                   maxRuleIds=10,
                   pathway_id='rp_pathway',
                   compartment_id='MNXC3',
-                  species_group_id='central_species'):
+                  species_group_id='central_species',
+                  pubchem_search=False):
         rp_strc = self._compounds(rp2paths_compounds)
         rp_transformation = self._transformation(rp2_pathways)
         return self._outPathsToSBML(rp_strc,
@@ -116,7 +243,8 @@ class rpReader:
                                     maxRuleIds,
                                     pathway_id,
                                     compartment_id,
-                                    species_group_id)
+                                    species_group_id,
+                                    pubchem_search)
 
     ## Function to parse the compounds.txt file
     #
@@ -212,7 +340,8 @@ class rpReader:
             maxRuleIds=10,
             pathway_id='rp_pathway',
             compartment_id='MNXC3',
-            species_group_id='central_species'):
+            species_group_id='central_species',
+            pubchem_search=False):
         #try:
         rp_paths = {}
         #reactions = self.rr_reactionsingleRule.split('__')[1]s
@@ -347,30 +476,135 @@ class rpReader:
                         spe_xref = self.chemXref[meta]
                     except KeyError:
                         spe_xref = {}
+                    ###### Try to recover the structures ####
                     #inchi
+                    spe_inchi = None
+                    spe_inchikey = None
+                    spe_smiles = None
+                    pubchem_inchi = None
+                    pubchem_inchikey = None
+                    pubchem_smiles = None
+                    pubchem_xref = {}
                     try:
                         spe_inchi = rp_strc[meta]['inchi']
+                        try:
+                            if not spe_xref and pubchem_search:
+                                try:
+                                    pubchem_inchi = self.pubchem_inchi[spe_inchi]['inchi']
+                                    pubchem_inchikey = self.pubchem_inchi[spe_inchi]['inchikey']
+                                    pubchem_smiles = self.pubchem_inchi[spe_inchi]['smiles']
+                                    pubchem_xref = self.pubchem_inchi[spe_inchi]['xref'] 
+                                except KeyError:
+                                    if not self.pubchem_inchi[spe_inchi]=={}:
+                                        pubres = self._pubchemStrctSearch(spe_inchi, 'inchi')
+                                        if not chemName:
+                                            chemName = pubres['name']
+                                        if 'chebi' in pubres['xref']:
+                                            try:
+                                                spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                            except KeyError:
+                                                pass
+                                        if not pubchem_xref:
+                                            pubchem_xref = pubres['xref']
+                                        if not pubchem_inchikey:
+                                            pubchem_inchikey = pubres['inchikey']
+                                        if not pubchem_smiles:
+                                            pubchem_smiles = pubres['smiles']
+                        except KeyError:
+                            self.logger.warning('Bad results from pubchem results')
+                            self.pubchem_inchi[spe_inchi] = {}
+                            pass
                     except KeyError:
-                        spe_inchi = None
+                        pass
                     #inchikey
                     try:
                         spe_inchikey = rp_strc[meta]['inchikey']
+                        try:
+                            if not spe_xref and pubchem_search:
+                                try:
+                                    pubchem_inchi = self.pubchem_inchikey[spe_inchi]['inchi']
+                                    pubchem_inchikey = self.pubchem_inchikey[spe_inchi]['inchikey']
+                                    pubchem_smiles = self.pubchem_inchikey[spe_inchi]['smiles']
+                                    pubchem_xref = self.pubchem_inchikey[spe_inchi]['xref'] 
+                                except KeyError:
+                                    if not self.pubchem_inchikey[spe_inchikey]=={}:
+                                        pubres = self._pubchemStrctSearch(spe_inchikey, 'inchikey')
+                                        if not chemName:
+                                            chemName = pubres['name']
+                                        if 'chebi' in pubres['xref']:
+                                            try:
+                                                spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                            except KeyError:
+                                                pass
+                                        if not pubchem_xref:
+                                            pubchem_xref = pubres['xref']
+                                        if not pubchem_inchi:
+                                            pubchem_inchi = pubres['inchi']
+                                        if not pubchem_smiles:
+                                            pubchem_smiles = pubres['smiles']
+                        except KeyError:
+                            self.logger.warning('Bad results from pubchem results')
+                            self.pubchem_inchikey[spe_inchikey] = {}
+                            pass
                     except KeyError:
-                        spe_inchikey = None
+                        pass
                     #smiles
                     try:
                         spe_smiles = rp_strc[meta]['smiles']
+                        try:
+                            if not spe_xref and pubchem_search:
+                                try:
+                                    pubchem_inchi = self.pubchem_inchikey[spe_inchi]['inchi']
+                                    pubchem_inchikey = self.pubchem_inchikey[spe_inchi]['inchikey']
+                                    pubchem_smiles = self.pubchem_inchikey[spe_inchi]['smiles']
+                                    pubchem_xref = self.pubchem_inchikey[spe_inchi]['xref'] 
+                                except KeyError:
+                                    if not self.pubchem_smiles[spe_smiles]=={}:
+                                        pubres = self._pubchemStrctSearch(spe_smiles, 'smiles')
+                                        if not chemName:
+                                            chemName = pubres['name']
+                                        if 'chebi' in pubres['xref']:
+                                            try:
+                                                spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                            except KeyError:
+                                                pass
+                                        if not pubchem_xref:
+                                            pubchem_xref = pubres['xref']
+                                        if not pubchem_inchi:
+                                            pubchem_inchi = pubres['inchi']
+                                        if not pubchem_inchikey:
+                                            pubchem_inchikey = pubres['inchikey']
+                        except KeyError:
+                            self.pubchem_smiles[spe_smiles] = {}
+                            self.logger.warning('Bad results from pubchem results')
+                            pass
                     except KeyError:
-                        spe_smiles = None
+                        pass
+                    if not spe_inchi:
+                        spe_inchi = pubchem_inchi
+                    if not spe_inchikey:
+                        spe_inchikey = pubchem_inchikey
+                    if not spe_smiles:
+                        spe_smiles = pubchem_smiles
+                    if pubchem_inchi:
+                        self.pubchem_inchi[pubchem_inchi] = {'inchi': pubchem_inchi, 'smiles': pubchem_smiles, 'inchikey': pubchem_inchikey, 'xref': pubchem_xref}
+                    if pubchem_inchikey:
+                        self.pubchem_inchikey[pubchem_inchikey] = {'inchi': pubchem_inchi, 'smiles': pubchem_smiles, 'inchikey': pubchem_inchikey, 'xref': pubchem_xref}
+                    if pubchem_smiles:
+                        self.pubchem_smiles[pubchem_smiles] = {'inchi': pubchem_inchi, 'smiles': pubchem_smiles, 'inchikey': pubchem_inchikey, 'xref': pubchem_xref}
+                    if not spe_xref:
+                        spe_xref = pubchem_xref
                     #pass the information to create the species
+                    if chemName:
+                        chemName = chemName.replace("'", "")
                     rpsbml.createSpecies(meta,
-                            compartment_id,
-                            chemName,
-                            spe_xref,
-                            spe_inchi,
-                            spe_inchikey,
-                            spe_smiles,
-                            species_group_id)
+                                         compartment_id,
+                                         chemName,
+                                         spe_xref,
+                                         spe_inchi,
+                                         spe_inchikey,
+                                         spe_smiles,
+                                         species_group_id)
                 #4) add the complete reactions and their annotations
                 for step in steps:
                     #add the substep to the model
@@ -385,19 +619,19 @@ class rpReader:
                             pathway_id)
                 #5) adding the consumption of the target
                 targetStep = {'rule_id': None,
-                        'left': {[i for i in all_meta if i[:6]=='TARGET'][0]: 1},
-                        'right': [],
-                        'step': None,
-                        'sub_step': None,
-                        'path_id': None,
-                        'transformation_id': None,
-                        'rule_score': None,
-                        'rule_ori_reac': None}
+                              'left': {[i for i in all_meta if i[:6]=='TARGET'][0]: 1},
+                              'right': [],
+                              'step': None,
+                              'sub_step': None,
+                              'path_id': None,
+                              'transformation_id': None,
+                              'rule_score': None,
+                              'rule_ori_reac': None}
                 rpsbml.createReaction('RP1_sink',
-                        upper_flux_bound,
-                        lower_flux_bound,
-                        targetStep,
-                        compartment_id)
+                                      upper_flux_bound,
+                                      lower_flux_bound,
+                                      targetStep,
+                                      compartment_id)
                 #6) Add the flux objectives
                 if tmpOutputFolder:
                     rpsbml.writeSBML(tmpOutputFolder)
@@ -432,7 +666,8 @@ class rpReader:
                    lower_flux_bound=0,
                    pathway_id='rp_pathway',
                    compartment_id='MNXC3',
-                   species_group_id='central_species'):
+                   species_group_id='central_species',
+                   pubchem_search=False):
         #global parameters used for all parameters
         pathNum = 1
         rp_paths = {}
@@ -477,14 +712,14 @@ class rpReader:
                     #NOTE: pick the rule with the highest diameter
                     r_id = sorted(node['data']['Rule ID'], key=lambda x: int(x.split('-')[-2]), reverse=True)[0]
                     reactions_list[pathNum][node['data']['id']] = {'rule_id': r_id,
-                        'rule_ori_reac': None,
-                        'right': {},
-                        'left': {},
-                        'path_id': pathNum,
-                        'step': None,
-                        'sub_step': None,
-                        'transformation_id': None,
-                        'rule_score': node['data']['Score']}
+                                                                   'rule_ori_reac': None,
+                                                                   'right': {},
+                                                                   'left': {},
+                                                                   'path_id': pathNum,
+                                                                   'step': None,
+                                                                   'sub_step': None,
+                                                                   'transformation_id': None,
+                                                                   'rule_score': node['data']['Score']}
                     reac_smiles[pathNum][r_id] = node['data']['Reaction SMILES']
                     reac_ecs[pathNum][r_id] = list(filter(None, [i for i in node['data']['EC number']]))
                     stochio[node['data']['id']] = {}
@@ -595,15 +830,18 @@ class rpReader:
                 ##### TODO: give the user more control over a generic model creation:
                 #   -> special attention to the compartment
                 rpsbml.genericModel('RetroPath_Pathway_'+str(path_id)+'_'+str(altPathNum),
-                        'RP_model_'+str(path_id)+'_'+str(altPathNum),
-                        self.compXref[mnxc],
-                        compartment_id,
-                        upper_flux_bound,
-                        lower_flux_bound)
+                                    'RP_model_'+str(path_id)+'_'+str(altPathNum),
+                                    self.compXref[mnxc],
+                                    compartment_id,
+                                    upper_flux_bound,
+                                    lower_flux_bound)
                 #2) create the pathway (groups)
                 rpsbml.createPathway(pathway_id)
                 rpsbml.createPathway(species_group_id)
                 #3) find all the unique species and add them to the model
+                ###################################################
+                ############## SPECIES ############################
+                ###################################################
                 meta_to_cid = {}
                 for meta in species_list[pathNum]:
                     #### beofre adding it to the model check to see if you can recover some MNXM from inchikey
@@ -614,8 +852,9 @@ class rpReader:
                             cid = sorted(self.inchikey_mnxm[sink_species[pathNum][meta]], key=lambda x: int(x[4:]))[0]
                             meta_to_cid[meta] = cid
                         except KeyError:
-                            logging.error('Cannot find sink compound: '+str(meta))
-                            return False
+                            self.logger.warning('Cannot find sink compound: '+str(meta))
+                            continue
+                            #return False
                     else:
                         cid = meta
                     # retreive the name of the molecule
@@ -630,21 +869,93 @@ class rpReader:
                         spe_xref = self.chemXref[meta]
                     except KeyError:
                         spe_xref = {}
+                    ###### Try to recover the structures ####
+                    spe_smiles = None
+                    spe_inchi = None
+                    spe_inchikey = None
+                    pubchem_smiles = None
+                    pubchem_inchi = None
+                    pubchem_inchikey = None
+                    pubchem_xref = {}
                     #inchi
                     try:
                         spe_inchi = rp_strc[meta]['inchi']
+                        if not spe_xref and pubchem_search:
+                            try:
+                                if not self.pubchem_inchi[spe_inchi]=={}:
+                                    pubchem_inchi = self.pubchem_inchi[spe_inchi]['inchi']
+                                    pubchem_inchikey = self.pubchem_inchi[spe_inchi]['inchikey']
+                                    pubchem_smiles = self.pubchem_inchi[spe_inchi]['smiles']
+                                    pubchem_xref = self.pubchem_inchi[spe_inchi]['xref'] 
+                            except KeyError:
+                                pubres = self._pubchemStrctSearch(spe_inchi, 'inchi')
+                                if not chemName:
+                                    chemName = pubres['name']
+                                if 'chebi' in pubres['xref']:
+                                    try:
+                                        #WARNING: taking the first one. Better to take the smallest?
+                                        spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                    except KeyError:
+                                        pass
+                                if not pubchem_xref:
+                                    pubchem_xref = pubres['xref']
+                                if not pubchem_inchikey:
+                                    pubchem_inchikey = pubres['inchikey']
+                                if not pubchem_smiles:
+                                    pubchem_smiles = pubres['smiles']
                     except KeyError:
-                        spe_inchi = None
+                        self.logger.warning('Bad results from pubchem results')
+                        pass
                     #inchikey
                     try:
                         spe_inchikey = rp_strc[meta]['inchikey']
+                        if not spe_xref and pubchem_search:
+                            pubres = self._pubchemStrctSearch(spe_inchikey, 'inchikey')
+                            if not chemName:
+                                chemName = pubres['name']
+                            if 'chebi' in pubres['xref']:
+                                try:
+                                    spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                except KeyError:
+                                    pass
+                            if not pubchem_xref:
+                                pubchem_xref = pubres['xref']
+                            if not pubchem_inchi:
+                                pubchem_inchi = pubres['inchi']
+                            if not pubchem_smiles:
+                                pubchem_smiles = pubres['smiles']
                     except KeyError:
-                        spe_inchikey = None
+                        self.logger.warning('Bad results from pubchem results')
+                        pass
                     #smiles
                     try:
                         spe_smiles = rp_strc[meta]['smiles']
+                        if not spe_xref and pubchem_search:
+                            pubres = self._pubchemStrctSearch(spe_smiles, 'smiles')
+                            if not chemName:
+                                chemName = pubres['name']
+                            if 'chebi' in pubres['xref']:
+                                try:
+                                    spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                except KeyError:
+                                    pass        
+                            if not pubchem_xref:
+                                pubchem_xref = pubres['xref']
+                            if not pubchem_inchi:
+                                pubchem_inchi = pubres['inchi']
+                            if not pubchem_inchikey:
+                                pubchem_inchikey = pubres['inchikey']
                     except KeyError:
-                        spe_smiles = None
+                        self.logger.warning('Bad results from pubchem results')
+                        pass
+                    if not spe_inchi:
+                        spe_inchi = pubchem_inchi
+                    if not spe_inchikey:
+                        spe_inchikey = pubchem_inchikey
+                    if not spe_smiles:
+                        spe_smiles = pubchem_smiles
+                    if not spe_xref:
+                        spe_xref = pubchem_xref
                     #pass the information to create the species
                     rpsbml.createSpecies(meta,
                             compartment_id,
@@ -710,7 +1021,7 @@ class rpReader:
     # @param inFile The input JSON file
     # @param mnxHeader Reorganise the results around the target MNX products
     # @return Dictionnary of SBML
-    def _parseTSV(self, inFile, mnxHeader=False):
+    def _parseTSV(self, inFile, remove_inchi_4p=False, mnxHeader=False):
         data = {}
         try:
             for row in csv.DictReader(open(inFile), delimiter='\t'):
@@ -728,7 +1039,10 @@ class rpReader:
                 if not 'target' in data[pathID]:
                     data[pathID]['target'] = {}
                     data[pathID]['target']['name'] = row['target_name']
-                    data[pathID]['target']['inchi'] = row['target_structure']
+                    if remove_inchi_4p:
+                        data[pathID]['target']['inchi'] = '/'.join([row['target_structure'].split('/')[i] for i in range(len(row['target_structure'].split('/'))) if i<4])
+                    else:
+                        data[pathID]['target']['inchi'] = row['target_structure']
                 ####### step #########
                 try:
                     stepID = int(row['step'])
@@ -761,7 +1075,10 @@ class rpReader:
                             row['substrate_structure'].split('_'),
                             row['substrate_dbref'].split(';')):
                         tmp = {}
-                        tmp['inchi'] = inchi.replace(' ', '')
+                        if remove_inchi_4p:
+                            tmp['inchi'] = '/'.join([inchi.split('/')[i] for i in range(len(inchi.split('/'))) if i<4])
+                        else:
+                            tmp['inchi'] = inchi.replace(' ', '')
                         tmp['name'] = name
                         tmp['dbref'] = {}
                         for dbref in dbrefs.split('|'):
@@ -798,7 +1115,10 @@ class rpReader:
                             row['product_structure'].split('_'),
                             row['product_dbref'].split(';')):
                         tmp = {}
-                        tmp['inchi'] = inchi.replace(' ', '')
+                        if remove_inchi_4p:
+                            tmp['inchi'] = '/'.join([inchi.split('/')[i] for i in range(len(inchi.split('/'))) if i<4])
+                        else:
+                            tmp['inchi'] = inchi.replace(' ', '')
                         tmp['name'] = name
                         tmp['dbref'] = {}
                         for dbref in dbrefs.split('|'):

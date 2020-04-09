@@ -1,4 +1,4 @@
-# rpReader 
+# rpReader docker 
 
 * Docker image: [brsynth/rpreader-standalone](https://hub.docker.com/r/brsynth/rpreader-standalone)
 
@@ -41,8 +41,13 @@ docker build -t brsynth/rpreader-standalone -f Dockerfile .
 To test untar the test.tar.xz file and run the following command:
 
 ```
-python run.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test/rp2_pathways.csv -rp2paths_pathways test/rp2paths_pathways.csv -outputTar test/test_rpReader.tar
+python run_rp2.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test/rp2_pathways.csv -rp2paths_pathways test/rp2paths_pathways.csv -output test/test_rpReader.tar
 ```
+
+## Dependencies
+
+* Base docker image: [brsynth/rpBase](https://hub.docker.com/r/brsynth/rpbase)
+* Cache docker image: [brsynth/rpCache](https://hub.docker.com/r/brsynth/rpcache)
 
 ## Contributing
 
