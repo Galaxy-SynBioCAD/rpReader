@@ -45,7 +45,7 @@ def rp2Reader_mem(rpreader,
         return False
     #outputTar = io.BytesIO()
     #with open(outputTar, 'w:xz') as tf:
-    with tarfile.open(fileobj=outputTar, mode='w:xz') as tf:
+    with tarfile.open(fileobj=outputTar, mode='w:gz') as tf:
         for rpsbml_name in rpsbml_paths:
             data = libsbml.writeSBMLToString(rpsbml_paths[rpsbml_name].document).encode('utf-8')
             fiOut = io.BytesIO(data)
@@ -96,9 +96,9 @@ def rp2Reader_hdd(rpreader,
         if len(glob.glob(tmpOutputFolder+'/*'))==0:
             logging.error('rpReder did not generate any results')
             return False
-        with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
+        with tarfile.open(fileobj=outputTar, mode='w:gz') as ot:
             for sbml_path in glob.glob(tmpOutputFolder+'/*'):
-                fileName = str(sbml_path.split('/')[-1].replace('.sbml', '').replace('.rpsbml', '').replace('.xml', ''))+'.rpsbml.xml'
+                fileName = str(sbml_path.split('/')[-1].replace('.sbml', '').replace('.rpsbml', '').replace('.xml', ''))+'.sbml.xml'
                 info = tarfile.TarInfo(fileName)
                 info.size = os.path.getsize(sbml_path)
                 ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
@@ -264,9 +264,9 @@ def main_tsv(outputTar,
             if len(glob.glob(tmpOutputFolder+'/*'))==0:
                 logging.error('rpReder did not generate any results')
                 return False
-            with tarfile.open(outputTar, mode='w:xz') as ot:
+            with tarfile.open(outputTar, mode='w:gz') as ot:
                 for sbml_path in glob.glob(tmpOutputFolder+'/*'):
-                    fileName = str(sbml_path.split('/')[-1].replace('.sbml', '').replace('.rpsbml', '').replace('.xml', ''))+'.rpsbml.xml'
+                    fileName = str(sbml_path.split('/')[-1].replace('.sbml', '').replace('.rpsbml', '').replace('.xml', ''))+'.sbml.xml'
                     info = tarfile.TarInfo(fileName)
                     info.size = os.path.getsize(sbml_path)
                     ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
