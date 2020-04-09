@@ -41,6 +41,7 @@ def rp2Reader_mem(rpreader,
                                       species_group_id)
     #pass the SBML results to a tar
     if rpsbml_paths=={}:
+        logging.error('rpReder did not generate any results')
         return False
     #outputTar = io.BytesIO()
     #with open(outputTar, 'w:xz') as tf:
@@ -69,6 +70,16 @@ def rp2Reader_hdd(rpreader,
                   species_group_id,
                   pubchem_search,
                   outputTar):
+    # check that the files are not empty
+    if sum(1 for line in open(rp2paths_compounds))<=1:
+        logging.error('RP2paths compounds is empty')
+        return False
+    if sum(1 for line in open(rp2_pathways))<=1:
+        logging.error('RP2 pathways is empty')
+        return False
+    if sum(1 for line in open(rp2paths_pathways))<=1:
+        logging.error('RP2paths pathways is empty')
+        return False
     with tempfile.TemporaryDirectory() as tmpOutputFolder:
         #Note the return here is {} and thus we can ignore it
         rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
@@ -83,6 +94,7 @@ def rp2Reader_hdd(rpreader,
                                           species_group_id,
                                           pubchem_search)
         if len(glob.glob(tmpOutputFolder+'/*'))==0:
+            logging.error('rpReder did not generate any results')
             return False
         with tarfile.open(fileobj=outputTar, mode='w:xz') as ot:
             for sbml_path in glob.glob(tmpOutputFolder+'/*'):
@@ -178,7 +190,7 @@ def main_rp2(outputTar,
         rpreader.compXref = rpcache.compXref
         rpreader.nameCompXref = rpcache.nameCompXref
         rpreader.chebi_mnxm = rpcache.chebi_mnxm
-        outputTar_bytes = io.BytesIO()
+        #outputTar_bytes = io.BytesIO()
         #### MEM #####
         """
         if not rp2Reader_mem(rpreader,
@@ -206,14 +218,16 @@ def main_rp2(outputTar,
                              compartment_id,
                              species_group_id,
                              pubchem_search,
-                             outputTar_bytes)
+                             outputTar)
         if not isOK:
             logging.error('Function returned an error')
+        '''
         ########IMPORTANT######
         outputTar_bytes.seek(0)
         #######################
         with open(outputTar, 'wb') as f:
             shutil.copyfileobj(outputTar_bytes, f, length=131072)
+        '''
 
 ##
 #
@@ -248,6 +262,7 @@ def main_tsv(outputTar,
             logging.error(glob.glob(tmpOutputFolder+'/*'))
             logging.error(outputTar)
             if len(glob.glob(tmpOutputFolder+'/*'))==0:
+                logging.error('rpReder did not generate any results')
                 return False
             with tarfile.open(outputTar, mode='w:xz') as ot:
                 for sbml_path in glob.glob(tmpOutputFolder+'/*'):
