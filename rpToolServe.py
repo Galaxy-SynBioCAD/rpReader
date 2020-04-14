@@ -12,6 +12,8 @@ sys.path.insert(0, '/home/')
 import rpTool as rpReader
 import rpToolCache
 
+logging.disable(logging.INFO)
+logging.disable(logging.WARNING)
 
 ## RetroPath2.0 reader for local packages
 #
@@ -96,7 +98,7 @@ def rp2Reader_hdd(rpreader,
         if len(glob.glob(tmpOutputFolder+'/*'))==0:
             logging.error('rpReder did not generate any results')
             return False
-        with tarfile.open(fileobj=outputTar, mode='w:gz') as ot:
+        with tarfile.open(outputTar, mode='w:gz') as ot:
             for sbml_path in glob.glob(tmpOutputFolder+'/*'):
                 fileName = str(sbml_path.split('/')[-1].replace('.sbml', '').replace('.rpsbml', '').replace('.xml', ''))+'.sbml.xml'
                 info = tarfile.TarInfo(fileName)
