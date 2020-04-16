@@ -12,8 +12,16 @@ sys.path.insert(0, '/home/')
 import rpTool as rpReader
 import rpToolCache
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    datefmt='%d-%m-%Y %H:%M:%S',
+)
+
+'''
 logging.disable(logging.INFO)
 logging.disable(logging.WARNING)
+'''
 
 ## RetroPath2.0 reader for local packages
 #
