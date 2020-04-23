@@ -220,9 +220,9 @@ class rpReader:
     # @param compartment_id string The ID of the SBML's model compartment where to add the reactions to
     # @return Boolean The success or failure of the function
     def rp2ToSBML(self,
-                  rp2paths_compounds,
                   rp2_pathways,
                   rp2paths_pathways,
+                  rp2paths_compounds,
                   tmpOutputFolder=None,
                   upper_flux_bound=999999,
                   lower_flux_bound=0,
@@ -346,6 +346,7 @@ class rpReader:
         #reactions = self.rr_reactionsingleRule.split('__')[1]s
         #with open(path, 'r') as f:
         #### we might pass binary in the REST version
+        self.logger.info('Parsing the following file: '+str(rp2paths_outPath))
         if isinstance(rp2paths_outPath, bytes):
             reader = csv.reader(io.StringIO(rp2paths_outPath.decode('utf-8')))
         else:
@@ -354,6 +355,9 @@ class rpReader:
         current_path_id = 0
         path_step = 1
         for row in reader:
+            self.logger.info('Parsing the row: '+str(row))
+            #Remove all illegal characters in SBML ids
+            row[3] = row[3].replace("'", "").replace('-', '_').replace('+', '')
             try:
                 if not int(row[0])==current_path_id:
                     path_step = 1
@@ -375,8 +379,12 @@ class rpReader:
             # we do it by sorting the list according to their score and taking the topx
             tmp_rr_reactions = {}
             for r_id in ruleIds:
-                for rea_id in self.rr_reactions[r_id]:
-                    tmp_rr_reactions[str(r_id)+'__'+str(rea_id)] = self.rr_reactions[r_id][rea_id]
+                try:
+                    for rea_id in self.rr_reactions[r_id]:
+                        tmp_rr_reactions[str(r_id)+'__'+str(rea_id)] = self.rr_reactions[r_id][rea_id]
+                except KeyError:
+                    self.logger.warning('Cannot find the following reaction rule: '+str(r_id)+'. Ignoring it...')
+                    pass
             if len(ruleIds)>int(maxRuleIds):
                 self.logger.warning('There are too many rules, limiting the number to random top '+str(maxRuleIds))
                 try:
@@ -596,6 +604,7 @@ class rpReader:
                     #pass the information to create the species
                     if chemName:
                         chemName = chemName.replace("'", "")
+                    self.logger.info('Creating species: '+str(chemName)+' ('+str(meta)+')')
                     rpsbml.createSpecies(meta,
                                          compartment_id,
                                          chemName,
@@ -608,6 +617,8 @@ class rpReader:
                 for step in steps:
                     #add the substep to the model
                     step['sub_step'] = altPathNum
+                    self.logger.info('Creating reaction: '+str('RP'+str(step['step'])))
+                    self.logger.info('Steps:'+str(step))
                     rpsbml.createReaction('RP'+str(step['step']), # parameter 'name' of the reaction deleted : 'RetroPath_Reaction_'+str(step['step']),
                             upper_flux_bound,
                             lower_flux_bound,
@@ -626,6 +637,7 @@ class rpReader:
                               'transformation_id': None,
                               'rule_score': None,
                               'rule_ori_reac': None}
+                self.logger.info('Creating reaction: RP1_sink')
                 rpsbml.createReaction('RP1_sink',
                                       upper_flux_bound,
                                       lower_flux_bound,
