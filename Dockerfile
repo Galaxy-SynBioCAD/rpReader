@@ -1,7 +1,4 @@
-FROM brsynth/rpcache:dev
-
-COPY rpToolCache.py /home/
-RUN python rpToolCache.py
+FROM brsynth/rpcache:newrules
 
 COPY rpTool.py /home/
 COPY rpToolServe.py /home/

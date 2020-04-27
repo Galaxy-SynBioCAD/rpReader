@@ -32,15 +32,15 @@ class rpReader:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.logger.info('Starting instance of rpReader')
-        self.deprecatedMNXM_mnxm = None
-        self.deprecatedMNXR_mnxr = None
-        self.mnxm_strc = None #There are the structures from MNXM
-        self.inchikey_mnxm = None #There are the mnxmIDs for InChIkeys
+        self.deprecatedCID_cid = None
+        self.deprecatedRID_rid = None
+        self.cid_strc = None
+        self.inchikey_cid = None
         self.rr_reactions = None
-        self.chemXref = None
-        self.compXref = None
-        self.nameCompXref = None
-        self.chebi_mnxm = None
+        self.cid_xref = None
+        self.comp_xref = None
+        self.xref_comp = None
+        self.chebi_cid = None
         self.pubchem_inchi = {}
         self.pubchem_inchikey = {}
         self.pubchem_smiles = {}
@@ -266,7 +266,7 @@ class rpReader:
             for row in reader:
                 rp_strc[row[0]] = {'smiles': row[1]}  #, 'structure':row[1].replace('[','').replace(']','')
                 try:
-                    rp_strc[row[0]]['inchi'] = self.mnxm_strc[row[0]]['inchi']
+                    rp_strc[row[0]]['inchi'] = self.cid_strc[row[0]]['inchi']
                 except KeyError:
                     #try to generate them yourself by converting them directly
                     try:
@@ -275,7 +275,7 @@ class rpReader:
                     except NotImplementedError as e:
                         self.logger.warning('Could not convert the following SMILES to InChI: '+str(row[1]))
                 try:
-                    rp_strc[row[0]]['inchikey'] = self.mnxm_strc[row[0]]['inchikey']
+                    rp_strc[row[0]]['inchikey'] = self.cid_strc[row[0]]['inchikey']
                     #try to generate them yourself by converting them directly
                     #TODO: consider using the inchi writing instead of the SMILES notation to find the inchikey
                 except KeyError:
@@ -310,6 +310,7 @@ class rpReader:
                 return {}
         next(reader)
         for row in reader:
+            logging.info(row)
             if not row[1] in rp_transformation:
                 rp_transformation[row[1]] = {}
                 rp_transformation[row[1]]['rule'] = row[2]
@@ -330,17 +331,17 @@ class rpReader:
     #  @maxRuleId maximal numer of rules associated with a step
     #  @return toRet_rp_paths Pathway object
     def _outPathsToSBML(self,
-            rp_strc,
-            rp_transformation,
-            rp2paths_outPath,
-            upper_flux_bound=999999,
-            lower_flux_bound=0,
-            tmpOutputFolder=None,
-            maxRuleIds=10,
-            pathway_id='rp_pathway',
-            compartment_id='MNXC3',
-            species_group_id='central_species',
-            pubchem_search=False):
+                        rp_strc,
+                        rp_transformation,
+                        rp2paths_outPath,
+                        upper_flux_bound=999999,
+                        lower_flux_bound=0,
+                        tmpOutputFolder=None,
+                        maxRuleIds=10,
+                        pathway_id='rp_pathway',
+                        compartment_id='MNXC3',
+                        species_group_id='central_species',
+                        pubchem_search=False):
         #try:
         rp_paths = {}
         #reactions = self.rr_reactionsingleRule.split('__')[1]s
@@ -397,24 +398,24 @@ class rpReader:
             sub_path_step = 1
             for singleRule in ruleIds:
                 tmpReac = {'rule_id': singleRule.split('__')[0],
-                        'rule_ori_reac': {'mnxr': singleRule.split('__')[1]},
-                        'rule_score': self.rr_reactions[singleRule.split('__')[0]][singleRule.split('__')[1]]['rule_score'],
-                        'right': {},
-                        'left': {},
-                        'path_id': int(row[0]),
-                        'step': path_step,
-                        'transformation_id': row[1][:-2]}
+                           'rule_ori_reac': singleRule.split('__')[1],
+                           'rule_score': self.rr_reactions[singleRule.split('__')[0]][singleRule.split('__')[1]]['rule_score'],
+                           'right': {},
+                           'left': {},
+                           'path_id': int(row[0]),
+                           'step': path_step,
+                           'transformation_id': row[1][:-2]}
                 ############ LEFT ##############
                 for l in row[3].split(':'):
                     tmp_l = l.split('.')
                     try:
                         #tmpReac['left'].append({'stoichio': int(tmp_l[0]), 'name': tmp_l[1]})
-                        mnxm = '' #TODO: change this
-                        if tmp_l[1] in self.deprecatedMNXM_mnxm:
-                            mnxm = self.deprecatedMNXM_mnxm[tmp_l[1]]
+                        cid = '' #TODO: change this
+                        if tmp_l[1] in self.deprecatedCID_cid:
+                            cid = self.deprecatedCID_cid[tmp_l[1]]
                         else:
-                            mnxm = tmp_l[1]
-                        tmpReac['left'][mnxm] = int(tmp_l[0])
+                            cid = tmp_l[1]
+                        tmpReac['left'][cid] = int(tmp_l[0])
                     except ValueError:
                         self.logger.error('Cannot convert tmp_l[0] to int ('+str(tmp_l[0])+')')
                         #return {}
@@ -424,12 +425,12 @@ class rpReader:
                     tmp_r = r.split('.')
                     try:
                         #tmpReac['right'].append({'stoichio': int(tmp_r[0]), 'name': tmp_r[1]})
-                        mnxm = '' #TODO change this
-                        if tmp_r[1] in self.deprecatedMNXM_mnxm:
-                            mnxm = self.deprecatedMNXM_mnxm[tmp_r[1]]  #+':'+self.rr_reactions[tmpReac['rule_id']]['left']
+                        cid = '' #TODO change this
+                        if tmp_r[1] in self.deprecatedCID_cid:
+                            cid = self.deprecatedCID_cid[tmp_r[1]]  #+':'+self.rr_reactions[tmpReac['rule_id']]['left']
                         else:
-                            mnxm = tmp_r[1]  #+':'+self.rr_reactions[tmpReac['rule_id']]['left']
-                        tmpReac['right'][mnxm] = int(tmp_r[0])
+                            cid = tmp_r[1]  #+':'+self.rr_reactions[tmpReac['rule_id']]['left']
+                        tmpReac['right'][cid] = int(tmp_r[0])
                     except ValueError:
                         self.logger.error('Cannot convert tmp_r[0] to int ('+str(tmp_r[0])+')')
                         return {}
@@ -442,7 +443,7 @@ class rpReader:
                 sub_path_step += 1
         #### pathToSBML ####
         try:
-            mnxc = self.nameCompXref[compartment_id]
+            compid = self.xref_comp[compartment_id]
         except KeyError:
             self.logger.error('Could not Xref compartment_id ('+str(compartment_id)+')')
             return False
@@ -462,11 +463,11 @@ class rpReader:
                 ##### TODO: give the user more control over a generic model creation:
                 #   -> special attention to the compartment
                 rpsbml.genericModel('RetroPath_Pathway_'+str(path_id)+'_'+str(altPathNum),
-                        'RP_model_'+str(path_id)+'_'+str(altPathNum),
-                        self.compXref[mnxc],
-                        compartment_id,
-                        upper_flux_bound,
-                        lower_flux_bound)
+                                    'RP_model_'+str(path_id)+'_'+str(altPathNum),
+                                    self.comp_xref[compid],
+                                    compartment_id,
+                                    upper_flux_bound,
+                                    lower_flux_bound)
                 #2) create the pathway (groups)
                 rpsbml.createPathway(pathway_id)
                 rpsbml.createPathway(species_group_id)
@@ -474,13 +475,13 @@ class rpReader:
                 all_meta = set([i for step in steps for lr in ['left', 'right'] for i in step[lr]])
                 for meta in all_meta:
                     try:
-                        chemName = self.mnxm_strc[meta]['name']
+                        chemName = self.cid_strc[meta]['name']
                     except KeyError:
                         chemName = None
                     #compile as much info as you can
                     #xref
                     try:
-                        spe_xref = self.chemXref[meta]
+                        spe_xref = self.cid_xref[meta]
                     except KeyError:
                         spe_xref = {}
                     ###### Try to recover the structures ####
@@ -508,7 +509,7 @@ class rpReader:
                                             chemName = pubres['name']
                                         if 'chebi' in pubres['xref']:
                                             try:
-                                                spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                                spe_xref = self.cid_xref[self.chebi_cid[pubres['xref']['chebi'][0]]]
                                             except KeyError:
                                                 pass
                                         if not pubchem_xref:
@@ -540,7 +541,7 @@ class rpReader:
                                             chemName = pubres['name']
                                         if 'chebi' in pubres['xref']:
                                             try:
-                                                spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                                spe_xref = self.cid_xref[self.chebi_cid[pubres['xref']['chebi'][0]]]
                                             except KeyError:
                                                 pass
                                         if not pubchem_xref:
@@ -572,7 +573,7 @@ class rpReader:
                                             chemName = pubres['name']
                                         if 'chebi' in pubres['xref']:
                                             try:
-                                                spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                                spe_xref = self.cid_xref[self.chebi_cid[pubres['xref']['chebi'][0]]]
                                             except KeyError:
                                                 pass
                                         if not pubchem_xref:
@@ -620,13 +621,13 @@ class rpReader:
                     self.logger.info('Creating reaction: '+str('RP'+str(step['step'])))
                     self.logger.info('Steps:'+str(step))
                     rpsbml.createReaction('RP'+str(step['step']), # parameter 'name' of the reaction deleted : 'RetroPath_Reaction_'+str(step['step']),
-                            upper_flux_bound,
-                            lower_flux_bound,
-                            step,
-                            compartment_id,
-                            rp_transformation[step['transformation_id']]['rule'],
-                            {'ec': rp_transformation[step['transformation_id']]['ec']},
-                            pathway_id)
+                                          upper_flux_bound,
+                                          lower_flux_bound,
+                                          step,
+                                          compartment_id,
+                                          rp_transformation[step['transformation_id']]['rule'],
+                                          {'ec': rp_transformation[step['transformation_id']]['ec']},
+                                          pathway_id)
                 #5) adding the consumption of the target
                 targetStep = {'rule_id': None,
                               'left': {[i for i in all_meta if i[:6]=='TARGET'][0]: 1},
@@ -651,6 +652,8 @@ class rpReader:
                 altPathNum += 1
         return sbml_paths
 
+
+    '''TODO: update this function with the new parameters etc...
 
     #######################################################################
     ############################# JSON input ##############################
@@ -822,7 +825,7 @@ class rpReader:
         ########### create the SBML's ########
         ######################################
         try:
-            mnxc = self.nameCompXref[compartment_id]
+            mnxc = self.xref_comp[compartment_id]
         except KeyError:
             self.logger.error('Could not Xref compartment_id ('+str(compartment_id)+')')
             return False
@@ -842,7 +845,7 @@ class rpReader:
                 #   -> special attention to the compartment
                 rpsbml.genericModel('RetroPath_Pathway_'+str(path_id)+'_'+str(altPathNum),
                                     'RP_model_'+str(path_id)+'_'+str(altPathNum),
-                                    self.compXref[mnxc],
+                                    self.comp_xref[mnxc],
                                     compartment_id,
                                     upper_flux_bound,
                                     lower_flux_bound)
@@ -860,7 +863,7 @@ class rpReader:
                     if meta in list(sink_species[pathNum].keys()):
                         try:
                             #take the smallest MNX, usually the best TODO: review this
-                            cid = sorted(self.inchikey_mnxm[sink_species[pathNum][meta]], key=lambda x: int(x[4:]))[0]
+                            cid = sorted(self.inchikey_cid[sink_species[pathNum][meta]], key=lambda x: int(x[4:]))[0]
                             meta_to_cid[meta] = cid
                         except KeyError:
                             self.logger.warning('Cannot find sink compound: '+str(meta))
@@ -869,15 +872,15 @@ class rpReader:
                     else:
                         cid = meta
                     # retreive the name of the molecule
-                    #here we want to gather the info from rpReader's rp_strc and mnxm_strc
+                    #here we want to gather the info from rpReader's rp_strc and cid_strc
                     try:
-                        chemName = self.mnxm_strc[meta]['name']
+                        chemName = self.cid_strc[meta]['name']
                     except KeyError:
                         chemName = None
                     #compile as much info as you can
                     #xref
                     try:
-                        spe_xref = self.chemXref[meta]
+                        spe_xref = self.cid_xref[meta]
                     except KeyError:
                         spe_xref = {}
                     ###### Try to recover the structures ####
@@ -905,7 +908,7 @@ class rpReader:
                                 if 'chebi' in pubres['xref']:
                                     try:
                                         #WARNING: taking the first one. Better to take the smallest?
-                                        spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                        spe_xref = self.cid_xref[self.chebi_cid[pubres['xref']['chebi'][0]]]
                                     except KeyError:
                                         pass
                                 if not pubchem_xref:
@@ -926,7 +929,7 @@ class rpReader:
                                 chemName = pubres['name']
                             if 'chebi' in pubres['xref']:
                                 try:
-                                    spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                    spe_xref = self.cid_xref[self.chebi_cid[pubres['xref']['chebi'][0]]]
                                 except KeyError:
                                     pass
                             if not pubchem_xref:
@@ -947,7 +950,7 @@ class rpReader:
                                 chemName = pubres['name']
                             if 'chebi' in pubres['xref']:
                                 try:
-                                    spe_xref = self.chemXref[self.chebi_mnxm[pubres['xref']['chebi'][0]]]
+                                    spe_xref = self.cid_xref[self.chebi_cid[pubres['xref']['chebi'][0]]]
                                 except KeyError:
                                     pass        
                             if not pubchem_xref:
@@ -1016,7 +1019,7 @@ class rpReader:
                 rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
                 sbml_paths['rp_'+str(step['path_id'])+'_'+str(altPathNum)] = rpsbml
                 altPathNum += 1
-
+    '''
 
     #############################################################################################
     ############################### TSV data tsv ################################################
@@ -1025,6 +1028,7 @@ class rpReader:
 
     ## Function to parse the TSV of measured heterologous pathways to SBML
     #
+    # TODO: update this to not rely on MNX
     # Given the TSV of measured pathways, parse them to a dictionnary, readable to next be parsed
     # to SBML
     #
@@ -1199,7 +1203,7 @@ class rpReader:
         #TODO: need to exit at this loop
         for path_id in data:
             try:
-                mnxc = self.nameCompXref[compartment_id]
+                mnxc = self.xref_comp[compartment_id]
             except KeyError:
                 self.logger.error('Could not Xref compartment_id ('+str(compartment_id)+')')
                 return False
@@ -1209,7 +1213,7 @@ class rpReader:
             #   -> special attention to the compartment
             rpsbml.genericModel(header_name+'_Path'+str(path_id),
                                 header_name+'_Path'+str(path_id),
-                                self.compXref[mnxc],
+                                self.comp_xref[mnxc],
                                 compartment_id,
                                 upper_flux_bound,
                                 lower_flux_bound)
@@ -1253,43 +1257,43 @@ class rpReader:
                 except NotImplementedError as e:
                     self.logger.warning('Could not convert the following InChI: '+str(chem['inchi']))
                 #create a new species
-                #here we want to gather the info from rpReader's rp_strc and mnxm_strc
+                #here we want to gather the info from rpReader's rp_strc and cid_strc
                 try:
-                    chemName = self.mnxm_strc[meta]['name']
+                    chemName = self.cid_strc[meta]['name']
                 except KeyError:
                     chemName = meta
                 #compile as much info as you can
                 #xref
                 try:
                     #TODO: add the xref from the document
-                    spe_xref = self.chemXref[meta]
+                    spe_xref = self.cid_xref[meta]
                 except KeyError:
                     #spe_xref = {}
                     spe_xref = chem['dbref']
                 #inchi
                 try:
-                    spe_inchi = self.mnxm_strc[meta]['inchi']
+                    spe_inchi = self.cid_strc[meta]['inchi']
                 except KeyError:
                     spe_inchi = chem['inchi']
                 #inchikey
                 try:
-                    spe_inchikey = self.mnxm_strc[meta]['inchikey']
+                    spe_inchikey = self.cid_strc[meta]['inchikey']
                 except KeyError:
                     spe_inchikey =  resConv['inchikey']
                 #smiles
                 try:
-                    spe_smiles = self.mnxm_strc[meta]['smiles']
+                    spe_smiles = self.cid_strc[meta]['smiles']
                 except KeyError:
                     spe_smiles = resConv['smiles']
                 #pass the information to create the species
                 rpsbml.createSpecies(meta,
-                        compartment_id,
-                        chemName,
-                        spe_xref,
-                        spe_inchi,
-                        spe_inchikey,
-                        spe_smiles,
-                        species_group_id)
+                                     compartment_id,
+                                     chemName,
+                                     spe_xref,
+                                     spe_inchi,
+                                     spe_inchikey,
+                                     spe_smiles,
+                                     species_group_id)
             #4) add the complete reactions and their annotations
             #create a new group for the measured pathway
             #need to convert the validation to step for reactions
@@ -1346,14 +1350,14 @@ class rpReader:
                 if stepNum==1:
                     #adding the consumption of the target
                     targetStep = {'rule_id': None,
-                            'left': {},
-                            'right': {},
-                            'step': None,
-                            'sub_step': None,
-                            'path_id': None,
-                            'transformation_id': None,
-                            'rule_score': None,
-                            'rule_ori_reac': None}
+                                  'left': {},
+                                  'right': {},
+                                  'step': None,
+                                  'sub_step': None,
+                                  'path_id': None,
+                                  'transformation_id': None,
+                                  'rule_score': None,
+                                  'rule_ori_reac': None}
                     for chem in data[path_id]['steps'][stepNum]['products']:
                         try:
                             #smallest MNX
@@ -1488,14 +1492,14 @@ class rpReader:
 		### rpReader #####
 		rpreader = rpReader.rpReader()
 		rpcache = rpToolCache.rpToolCache()
-		rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
-		rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
-		rpreader.mnxm_strc = rpcache.mnxm_strc
-		rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
+		rpreader.deprecatedCID_cid = rpcache.deprecatedCID_cid
+		rpreader.deprecatedRID_rid = rpcache.deprecatedRID_rid
+		rpreader.cid_strc = rpcache.cid_strc
+		rpreader.inchikey_cid = rpcache.inchikey_cid
 		rpreader.rr_reactions = rpcache.rr_reactions
-		rpreader.chemXref = rpcache.chemXref
-		rpreader.compXref = rpcache.compXref
-		rpreader.nameCompXref = rpcache.nameCompXref
+		rpreader.cid_xref = rpcache.cid_xref
+		rpreader.comp_xref = rpcache.comp_xref
+		rpreader.xref_compID = rpcache.xref_compID
 		##################
 		#measured_pathway = parseValidation(tmpOutputFolder+'/tmp_input.csv')
 		measured_sbml_paths = rpreader.validationToSBML(tmpOutputFolder+'/tmp_input.tsv',
