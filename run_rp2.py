@@ -29,7 +29,7 @@ def main(rp2_pathways,
          species_group_id='central_species',
          pubchem_search='False'):
     docker_client = docker.from_env()
-    image_str = 'brsynth/rpreader-standalone:dev'
+    image_str = 'brsynth/rpreader-standalone:newrules'
     try:
         image = docker_client.images.get(image_str)
     except docker.errors.ImageNotFound:
