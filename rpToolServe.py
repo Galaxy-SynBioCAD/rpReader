@@ -10,7 +10,8 @@ import shutil
 
 sys.path.insert(0, '/home/')
 import rpTool as rpReader
-import rpToolCache
+#import rpToolCache
+import rpCache
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -128,14 +129,14 @@ def main_string(outputTar,
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
         rpcache = rpToolCache.rpToolCache()
-        rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
-        rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
-        rpreader.mnxm_strc = rpcache.mnxm_strc
-        rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
+        rpreader.deprecatedCID_cid = rpcache.deprecatedCID_cid
+        rpreader.deprecatedRID_rid = rpcache.deprecatedRID_rid
+        rpreader.cid_strc = rpcache.cid_strc
+        rpreader.inchikey_cid = rpcache.inchikey_cid
         rpreader.rr_reactions = rpcache.rr_reactions
-        rpreader.chemXref = rpcache.chemXref
-        rpreader.compXref = rpcache.compXref
-        rpreader.nameCompXref = rpcache.nameCompXref
+        rpreader.cid_xref = rpcache.cid_xref
+        rpreader.comp_xref = rpcache.comp_xref
+        rpreader.xref_comp = rpcache.xref_comp
         outputTar_bytes = io.BytesIO()
         #### MEM #####
         """
@@ -190,16 +191,17 @@ def main_rp2(outputTar,
              pubchem_search=False):
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
-        rpcache = rpToolCache.rpToolCache()
-        rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
-        rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
-        rpreader.mnxm_strc = rpcache.mnxm_strc
-        rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
+        #rpcache = rpToolCache.rpToolCache()
+        rpcache = rpCache.rpCache()
+        rpreader.deprecatedCID_cid = rpcache.deprecatedCID_cid
+        rpreader.deprecatedRID_rid = rpcache.deprecatedRID_rid
+        rpreader.cid_strc = rpcache.cid_strc
+        rpreader.inchikey_cid = rpcache.inchikey_cid
         rpreader.rr_reactions = rpcache.rr_reactions
-        rpreader.chemXref = rpcache.chemXref
-        rpreader.compXref = rpcache.compXref
-        rpreader.nameCompXref = rpcache.nameCompXref
-        rpreader.chebi_mnxm = rpcache.chebi_mnxm
+        rpreader.cid_xref = rpcache.cid_xref
+        rpreader.comp_xref = rpcache.comp_xref
+        rpreader.xref_comp = rpcache.xref_comp
+        rpreader.chebi_cid = rpcache.chebi_cid
         #outputTar_bytes = io.BytesIO()
         #### MEM #####
         """
@@ -251,16 +253,17 @@ def main_tsv(outputTar,
              species_group_id='central_species'):
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
-        rpcache = rpToolCache.rpToolCache()
-        rpreader.deprecatedMNXM_mnxm = rpcache.deprecatedMNXM_mnxm
-        rpreader.deprecatedMNXR_mnxr = rpcache.deprecatedMNXR_mnxr
-        rpreader.mnxm_strc = rpcache.mnxm_strc
-        rpreader.inchikey_mnxm = rpcache.inchikey_mnxm
+        #rpcache = rpToolCache.rpToolCache()
+        rpcache = rpCache.rpCache()
+        rpreader.deprecatedCID_cid = rpcache.deprecatedCID_cid
+        rpreader.deprecatedRID_rid = rpcache.deprecatedRID_rid
+        rpreader.cid_strc = rpcache.cid_strc
+        rpreader.inchikey_cid = rpcache.inchikey_cid
         rpreader.rr_reactions = rpcache.rr_reactions
-        rpreader.chemXref = rpcache.chemXref
-        rpreader.compXref = rpcache.compXref
-        rpreader.nameCompXref = rpcache.nameCompXref
-        rpreader.chebi_mnxm = rpcache.chebi_mnxm
+        rpreader.cid_xref = rpcache.cid_xref
+        rpreader.comp_xref = rpcache.comp_xref
+        rpreader.xref_comp = rpcache.xref_comp
+        rpreader.chebi_cid = rpcache.chebi_cid
         with tempfile.TemporaryDirectory() as tmpOutputFolder:
             rpreader.TSVtoSBML(tsvfile,
                                tmpOutputFolder,
