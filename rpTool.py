@@ -386,7 +386,7 @@ class rpReader:
                     self.logger.warning('Cannot find the following reaction rule: '+str(r_id)+'. Ignoring it...')
                     pass
             if len(ruleIds)>int(maxRuleIds):
-                self.logger.warning('There are too many rules, limiting the number to random top '+str(maxRuleIds))
+                self.logger.warning('There are too many rules, limiting the number to top '+str(maxRuleIds))
                 try:
                     ruleIds = [y for y,_ in sorted([(i, tmp_rr_reactions[i]['rule_score']) for i in tmp_rr_reactions])][:int(maxRuleIds)] 
                 except KeyError:
