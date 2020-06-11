@@ -18,14 +18,12 @@ logging.basicConfig(
     datefmt='%d-%m-%Y %H:%M:%S',
 )
 
-'''
 logging.disable(logging.INFO)
 logging.disable(logging.WARNING)
-'''
 
 ## RetroPath2.0 reader for local packages
 #
-#
+# TODO: need to fix the input
 def rp2Reader_mem(rpreader,
                   rp2_pathways,
                   rp2paths_pathways,
@@ -249,7 +247,7 @@ def main_rp2(outputTar,
 
 ##
 #
-#
+# TODO: need to fix for the new input
 def main_tsv(outputTar,
              tsvfile,
              upper_flux_bound=999999,

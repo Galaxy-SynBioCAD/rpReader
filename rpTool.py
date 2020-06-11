@@ -321,6 +321,8 @@ class rpReader:
             if row[7]=='1':
                 for i in row[8].replace(']', '').replace('[', '').replace(' ', '').split(','):
                     sink_molecules.append(i)
+        self.logger.info(rp_transformation)
+        self.logger.info(sink_molecules)
         return rp_transformation, list(set(sink_molecules))
 
 
