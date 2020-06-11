@@ -27,6 +27,7 @@ def main(rp2_pathways,
          compartment_id='MNXC3',
          pathway_id='rp_pathway',
          species_group_id='central_species',
+         sink_species_group_id='rp_sink_species',
          pubchem_search='False'):
     docker_client = docker.from_env()
     image_str = 'brsynth/rpreader-standalone:dev'
@@ -63,6 +64,8 @@ def main(rp2_pathways,
                    str(compartment_id),
                    '-species_group_id',
                    str(species_group_id),
+                   '-sink_species_group_id',
+                   str(sink_species_group_id),
                    '-pubchem_search',
                    str(pubchem_search),
                    '-output',
@@ -95,6 +98,7 @@ if __name__ == "__main__":
     parser.add_argument('-pathway_id', type=str, default='rp_pathway')
     parser.add_argument('-compartment_id', type=str, default='MNXC3')
     parser.add_argument('-species_group_id', type=str, default='central_species')
+    parser.add_argument('-sink_species_group_id', type=str, default='rp_sink_species')
     parser.add_argument('-pubchem_search', type=str, default='False')
     parser.add_argument('-output', type=str)
     params = parser.parse_args()
@@ -121,4 +125,5 @@ if __name__ == "__main__":
          params.compartment_id,
          params.pathway_id,
          params.species_group_id,
+         params.sink_species_group_id,
          pubchem_search)

@@ -36,6 +36,7 @@ def rp2Reader_mem(rpreader,
                   pathway_id,
                   compartment_id,
                   species_group_id,
+                  sink_species_group_id,
                   pubchem_search,
                   outputTar):
     rpsbml_paths = rpreader.rp2ToSBML(rp2_pathways,
@@ -47,8 +48,9 @@ def rp2Reader_mem(rpreader,
                                       maxRuleIds,
                                       pathway_id,
                                       compartment_id,
-                                      pubchem_search,
-                                      species_group_id)
+                                      species_group_id,
+                                      sink_species_group_id,
+                                      pubchem_search)
     #pass the SBML results to a tar
     if rpsbml_paths=={}:
         logging.error('rpReader did not generate any results')
@@ -78,6 +80,7 @@ def rp2Reader_hdd(rpreader,
                   pathway_id,
                   compartment_id,
                   species_group_id,
+                  sink_species_group_id,
                   pubchem_search,
                   outputTar):
     # check that the files are not empty
@@ -102,6 +105,7 @@ def rp2Reader_hdd(rpreader,
                                           pathway_id,
                                           compartment_id,
                                           species_group_id,
+                                          sink_species_group_id,
                                           pubchem_search)
         if len(glob.glob(tmpOutputFolder+'/*'))==0:
             logging.error('rpReader did not generate any results')
@@ -163,6 +167,7 @@ def main_string(outputTar,
                              pathway_id,
                              compartment_id,
                              species_group_id,
+                             sink_species_group_id,
                              pubchem_search,
                              outputTar_bytes)
         if not isOK:
@@ -177,6 +182,7 @@ def main_string(outputTar,
 ##
 #
 #
+#TODO: change pathway_id to pathway_group_id
 def main_rp2(outputTar,
              rp2_pathways,
              rp2paths_pathways,
@@ -187,6 +193,7 @@ def main_rp2(outputTar,
              compartment_id='MNXC3',
              pathway_id='rp_pathway',
              species_group_id='central_species',
+             sink_species_group_id='rp_sink_species',
              pubchem_search=False):
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
@@ -227,6 +234,7 @@ def main_rp2(outputTar,
                              pathway_id,
                              compartment_id,
                              species_group_id,
+                             sink_species_group_id,
                              pubchem_search,
                              outputTar)
         if not isOK:
@@ -248,7 +256,8 @@ def main_tsv(outputTar,
              lower_flux_bound=0,
              compartment_id='MNXC3',
              pathway_id='rp_pathway',
-             species_group_id='central_species'):
+             species_group_id='central_species',
+             sink_species_group_id='rp_sink_species'):
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
         rpcache = rpToolCache.rpToolCache()
