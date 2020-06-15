@@ -30,6 +30,7 @@ if __name__ == "__main__":
     parser.add_argument('-sink_species_group_id', type=str, default='rp_sink_species')
     parser.add_argument('-pubchem_search', type=str, default='False')
     params = parser.parse_args()
+    logging.info(params.maxRuleIds)
     if params.maxRuleIds<=0:
         logging.error('Max rule ID cannot be less or equal than 0: '+str(params.maxRuleIds))
         exit(1)

@@ -232,6 +232,7 @@ class rpReader:
                   species_group_id='central_species',
                   sink_species_group_id='rp_sink_species',
                   pubchem_search=False):
+        self.logger.info(maxRuleIds)
         rp_strc = self._compounds(rp2paths_compounds)
         rp_transformation, sink_molecules = self._transformation(rp2_pathways)
         return self._outPathsToSBML(rp_strc,
@@ -352,6 +353,7 @@ class rpReader:
                         species_group_id='central_species',
                         sink_species_group_id='rp_sink_species',
                         pubchem_search=False):
+        self.logger.info(maxRuleIds)
         #try:
         rp_paths = {}
         sink_species = []

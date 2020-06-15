@@ -18,8 +18,8 @@ logging.basicConfig(
     datefmt='%d-%m-%Y %H:%M:%S',
 )
 
-logging.disable(logging.INFO)
-logging.disable(logging.WARNING)
+#logging.disable(logging.INFO)
+#logging.disable(logging.WARNING)
 
 ## RetroPath2.0 reader for local packages
 #
@@ -81,6 +81,7 @@ def rp2Reader_hdd(rpreader,
                   sink_species_group_id,
                   pubchem_search,
                   outputTar):
+    logging.info(maxRuleIds)
     # check that the files are not empty
     if sum(1 for line in open(rp2paths_compounds))<=1:
         logging.error('RP2paths compounds is empty')
