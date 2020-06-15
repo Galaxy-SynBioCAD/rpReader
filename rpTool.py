@@ -57,24 +57,10 @@ class rpReader:
 
 
     def _pubChemLimit(self):
-        '''
-        if self.pubchem_sec_start==0.0:
-            self.pubchem_sec_start = time.time()
-        '''
         if self.pubchem_min_start==0.0:
             self.pubchem_min_start = time.time()
         #self.pubchem_sec_count += 1
         self.pubchem_min_count += 1
-        '''
-        #### requests per second ####
-        if self.pubchem_sec_count>=5 and time.time()-self.pubchem_sec_start<=1.0:
-            time.sleep(1.0)
-            self.pubchem_sec_start = time.time()
-            self.pubchem_sec_count = 0
-        elif time.time()-self.pubchem_sec_start>1.0:
-            self.pubchem_sec_start = time.time()
-            self.pubchem_sec_count = 0
-        '''
         #### requests per minute ####
         if self.pubchem_min_count>=500 and time.time()-self.pubchem_min_start<=60.0:
             self.logger.warning('Reached 500 requests per minute for pubchem... waiting a minute')
@@ -230,11 +216,14 @@ class rpReader:
                   pathway_id='rp_pathway',
                   compartment_id='MNXC3',
                   species_group_id='central_species',
+                  sink_species_group_id='rp_sink_species',
                   pubchem_search=False):
+        self.logger.info(maxRuleIds)
         rp_strc = self._compounds(rp2paths_compounds)
-        rp_transformation = self._transformation(rp2_pathways)
+        rp_transformation, sink_molecules = self._transformation(rp2_pathways)
         return self._outPathsToSBML(rp_strc,
                                     rp_transformation,
+                                    sink_molecules,
                                     rp2paths_pathways,
                                     upper_flux_bound,
                                     lower_flux_bound,
@@ -243,6 +232,7 @@ class rpReader:
                                     pathway_id,
                                     compartment_id,
                                     species_group_id,
+                                    sink_species_group_id,
                                     pubchem_search)
 
     ## Function to parse the compounds.txt file
@@ -298,6 +288,7 @@ class rpReader:
     #  @param path The scope.csv file path
     def _transformation(self, path):
         rp_transformation = {}
+        sink_molecules = []
         #### we might pass binary in the REST version
         reader = None
         if isinstance(path, bytes):
@@ -315,7 +306,12 @@ class rpReader:
                 rp_transformation[row[1]] = {}
                 rp_transformation[row[1]]['rule'] = row[2]
                 rp_transformation[row[1]]['ec'] = [i.replace(' ', '') for i in row[11][1:-1].split(',') if not i.replace(' ', '')=='NOEC']
-        return rp_transformation
+            if row[7]=='1':
+                for i in row[8].replace(']', '').replace('[', '').replace(' ', '').split(','):
+                    sink_molecules.append(i)
+        self.logger.info(rp_transformation)
+        self.logger.info(sink_molecules)
+        return rp_transformation, list(set(sink_molecules))
 
 
     #TODO: make sure that you account for the fact that each reaction may have multiple associated reactions
@@ -333,6 +329,7 @@ class rpReader:
     def _outPathsToSBML(self,
                         rp_strc,
                         rp_transformation,
+                        sink_molecules,
                         rp2paths_outPath,
                         upper_flux_bound=999999,
                         lower_flux_bound=0,
@@ -341,9 +338,12 @@ class rpReader:
                         pathway_id='rp_pathway',
                         compartment_id='MNXC3',
                         species_group_id='central_species',
+                        sink_species_group_id='rp_sink_species',
                         pubchem_search=False):
+        self.logger.info(maxRuleIds)
         #try:
         rp_paths = {}
+        sink_species = []
         #reactions = self.rr_reactionsingleRule.split('__')[1]s
         #with open(path, 'r') as f:
         #### we might pass binary in the REST version
@@ -356,6 +356,8 @@ class rpReader:
         current_path_id = 0
         path_step = 1
         for row in reader:
+            #in_sink
+            #in_sink = int(row[7])
             self.logger.info('Parsing the row: '+str(row))
             #Remove all illegal characters in SBML ids
             row[3] = row[3].replace("'", "").replace('-', '_').replace('+', '')
@@ -373,7 +375,7 @@ class rpReader:
             #################################
             ruleIds = row[2].split(',')
             if ruleIds==None:
-                self.logger.error('The rulesIds is None')
+                self.logger.warning('The rulesIds is None')
                 #pass # or continue
                 continue
             ###WARNING: This is the part where we select some rules over others
@@ -387,7 +389,7 @@ class rpReader:
                     self.logger.warning('Cannot find the following reaction rule: '+str(r_id)+'. Ignoring it...')
                     pass
             if len(ruleIds)>int(maxRuleIds):
-                self.logger.warning('There are too many rules, limiting the number to random top '+str(maxRuleIds))
+                self.logger.warning('There are too many rules, limiting the number to top '+str(maxRuleIds))
                 try:
                     ruleIds = [y for y,_ in sorted([(i, tmp_rr_reactions[i]['rule_score']) for i in tmp_rr_reactions])][:int(maxRuleIds)] 
                 except KeyError:
@@ -398,7 +400,7 @@ class rpReader:
             sub_path_step = 1
             for singleRule in ruleIds:
                 tmpReac = {'rule_id': singleRule.split('__')[0],
-                           'rule_ori_reac': singleRule.split('__')[1],
+                           'rule_ori_reac': {'mnxr': singleRule.split('__')[1]},
                            'rule_score': self.rr_reactions[singleRule.split('__')[0]][singleRule.split('__')[1]]['rule_score'],
                            'right': {},
                            'left': {},
@@ -471,6 +473,7 @@ class rpReader:
                 #2) create the pathway (groups)
                 rpsbml.createPathway(pathway_id)
                 rpsbml.createPathway(species_group_id)
+                rpsbml.createPathway(sink_species_group_id)
                 #3) find all the unique species and add them to the model
                 all_meta = set([i for step in steps for lr in ['left', 'right'] for i in step[lr]])
                 for meta in all_meta:
@@ -606,14 +609,26 @@ class rpReader:
                     if chemName:
                         chemName = chemName.replace("'", "")
                     self.logger.info('Creating species: '+str(chemName)+' ('+str(meta)+')')
-                    rpsbml.createSpecies(meta,
-                                         compartment_id,
-                                         chemName,
-                                         spe_xref,
-                                         spe_inchi,
-                                         spe_inchikey,
-                                         spe_smiles,
-                                         species_group_id)
+                    if meta in sink_molecules:
+                        self.logger.info('Species is sink: '+str(sink_species_group_id))
+                        rpsbml.createSpecies(meta,
+                                             compartment_id,
+                                             chemName,
+                                             spe_xref,
+                                             spe_inchi,
+                                             spe_inchikey,
+                                             spe_smiles,
+                                             species_group_id,
+                                             sink_species_group_id)
+                    else:
+                        rpsbml.createSpecies(meta,
+                                             compartment_id,
+                                             chemName,
+                                             spe_xref,
+                                             spe_inchi,
+                                             spe_inchikey,
+                                             spe_smiles,
+                                             species_group_id)
                 #4) add the complete reactions and their annotations
                 for step in steps:
                     #add the substep to the model
@@ -1189,6 +1204,7 @@ class rpReader:
     # @param self Object pointer
     # @param inFile Input file
     # @param compartment_id compartment of the
+    # TODO: update this 
     def TSVtoSBML(self,
                   inFile,
                   tmpOutputFolder=None,
