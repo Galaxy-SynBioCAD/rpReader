@@ -12,38 +12,46 @@ sys.path.insert(0, '/home/')
 import rpTool as rpReader
 import rpToolCache
 
-logging.disable(logging.INFO)
-logging.disable(logging.WARNING)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    datefmt='%d-%m-%Y %H:%M:%S',
+)
+
+#logging.disable(logging.INFO)
+#logging.disable(logging.WARNING)
 
 ## RetroPath2.0 reader for local packages
 #
-#
+# TODO: need to fix the input
 def rp2Reader_mem(rpreader,
-                  rp2paths_compounds,
                   rp2_pathways,
                   rp2paths_pathways,
+                  rp2paths_compounds,
                   upper_flux_bound,
                   lower_flux_bound,
                   maxRuleIds,
                   pathway_id,
                   compartment_id,
                   species_group_id,
+                  sink_species_group_id,
                   pubchem_search,
                   outputTar):
-    rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
-                                      rp2_pathways,
+    rpsbml_paths = rpreader.rp2ToSBML(rp2_pathways,
                                       rp2paths_pathways,
+                                      rp2paths_compounds,
                                       None,
                                       upper_flux_bound,
                                       lower_flux_bound,
                                       maxRuleIds,
                                       pathway_id,
                                       compartment_id,
-                                      pubchem_search,
-                                      species_group_id)
+                                      species_group_id,
+                                      sink_species_group_id,
+                                      pubchem_search)
     #pass the SBML results to a tar
     if rpsbml_paths=={}:
-        logging.error('rpReder did not generate any results')
+        logging.error('rpReader did not generate any results')
         return False
     #outputTar = io.BytesIO()
     #with open(outputTar, 'w:xz') as tf:
@@ -61,17 +69,19 @@ def rp2Reader_mem(rpreader,
 #
 #
 def rp2Reader_hdd(rpreader,
-                  rp2paths_compounds,
                   rp2_pathways,
                   rp2paths_pathways,
+                  rp2paths_compounds,
                   upper_flux_bound,
                   lower_flux_bound,
                   maxRuleIds,
                   pathway_id,
                   compartment_id,
                   species_group_id,
+                  sink_species_group_id,
                   pubchem_search,
                   outputTar):
+    logging.info(maxRuleIds)
     # check that the files are not empty
     if sum(1 for line in open(rp2paths_compounds))<=1:
         logging.error('RP2paths compounds is empty')
@@ -84,9 +94,9 @@ def rp2Reader_hdd(rpreader,
         return False
     with tempfile.TemporaryDirectory() as tmpOutputFolder:
         #Note the return here is {} and thus we can ignore it
-        rpsbml_paths = rpreader.rp2ToSBML(rp2paths_compounds,
-                                          rp2_pathways,
+        rpsbml_paths = rpreader.rp2ToSBML(rp2_pathways,
                                           rp2paths_pathways,
+                                          rp2paths_compounds,
                                           tmpOutputFolder,
                                           upper_flux_bound,
                                           lower_flux_bound,
@@ -94,9 +104,10 @@ def rp2Reader_hdd(rpreader,
                                           pathway_id,
                                           compartment_id,
                                           species_group_id,
+                                          sink_species_group_id,
                                           pubchem_search)
         if len(glob.glob(tmpOutputFolder+'/*'))==0:
-            logging.error('rpReder did not generate any results')
+            logging.error('rpReader did not generate any results')
             return False
         with tarfile.open(outputTar, mode='w:gz') as ot:
             for sbml_path in glob.glob(tmpOutputFolder+'/*'):
@@ -132,9 +143,9 @@ def main_string(outputTar,
         #### MEM #####
         """
         if not rp2Reader_mem(rpreader,
-                    rp2paths_compounds,
                     rp2_pathways,
                     rp2paths_pathways,
+                    rp2paths_compounds,
                     int(upper_flux_bound),
                     int(lower_flux_bound),
                     int(maxRuleIds),
@@ -146,15 +157,16 @@ def main_string(outputTar,
         """
         #### HDD #####
         isOK = rp2Reader_hdd(rpreader,
-                             rp2paths_compounds,
                              rp2_pathways,
                              rp2paths_pathways,
+                             rp2paths_compounds,
                              int(upper_flux_bound),
                              int(lower_flux_bound),
                              int(maxRuleIds),
                              pathway_id,
                              compartment_id,
                              species_group_id,
+                             sink_species_group_id,
                              pubchem_search,
                              outputTar_bytes)
         if not isOK:
@@ -169,16 +181,18 @@ def main_string(outputTar,
 ##
 #
 #
+#TODO: change pathway_id to pathway_group_id
 def main_rp2(outputTar,
-             rp2paths_compounds,
              rp2_pathways,
              rp2paths_pathways,
+             rp2paths_compounds,
              upper_flux_bound=999999,
              lower_flux_bound=0,
              maxRuleIds=2,
              compartment_id='MNXC3',
              pathway_id='rp_pathway',
              species_group_id='central_species',
+             sink_species_group_id='rp_sink_species',
              pubchem_search=False):
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
@@ -196,9 +210,9 @@ def main_rp2(outputTar,
         #### MEM #####
         """
         if not rp2Reader_mem(rpreader,
-                    rp2paths_compounds,
                     rp2_pathways,
                     rp2paths_pathways,
+                    rp2paths_compounds,
                     int(upper_flux_bound),
                     int(lower_flux_bound),
                     int(maxRuleIds),
@@ -210,15 +224,16 @@ def main_rp2(outputTar,
         """
         #### HDD #####
         isOK = rp2Reader_hdd(rpreader,
-                             rp2paths_compounds,
                              rp2_pathways,
                              rp2paths_pathways,
+                             rp2paths_compounds,
                              int(upper_flux_bound),
                              int(lower_flux_bound),
                              int(maxRuleIds),
                              pathway_id,
                              compartment_id,
                              species_group_id,
+                             sink_species_group_id,
                              pubchem_search,
                              outputTar)
         if not isOK:
@@ -233,14 +248,15 @@ def main_rp2(outputTar,
 
 ##
 #
-#
+# TODO: need to fix for the new input
 def main_tsv(outputTar,
              tsvfile,
              upper_flux_bound=999999,
              lower_flux_bound=0,
              compartment_id='MNXC3',
              pathway_id='rp_pathway',
-             species_group_id='central_species'):
+             species_group_id='central_species',
+             sink_species_group_id='rp_sink_species'):
         #pass the cache parameters to the rpReader
         rpreader = rpReader.rpReader()
         rpcache = rpToolCache.rpToolCache()
@@ -264,7 +280,7 @@ def main_tsv(outputTar,
             logging.error(glob.glob(tmpOutputFolder+'/*'))
             logging.error(outputTar)
             if len(glob.glob(tmpOutputFolder+'/*'))==0:
-                logging.error('rpReder did not generate any results')
+                logging.error('rpReader did not generate any results')
                 return False
             with tarfile.open(outputTar, mode='w:gz') as ot:
                 for sbml_path in glob.glob(tmpOutputFolder+'/*'):
