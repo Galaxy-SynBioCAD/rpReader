@@ -10,17 +10,20 @@ import shutil
 
 sys.path.insert(0, '/home/')
 import rpTool as rpReader
-#import rpToolCache
 import rpCache
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    #level=logging.DEBUG,
+    level=logging.WARNING,
     format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
     datefmt='%d-%m-%Y %H:%M:%S',
 )
 
-#logging.disable(logging.INFO)
-#logging.disable(logging.WARNING)
+'''
+logging.disable(logging.INFO)
+logging.disable(logging.DEBUG)
+logging.disable(logging.WARNING)
+'''
 
 ## RetroPath2.0 reader for local packages
 #
@@ -82,7 +85,7 @@ def rp2Reader_hdd(rpreader,
                   sink_species_group_id,
                   pubchem_search,
                   outputTar):
-    logging.info(maxRuleIds)
+    logging.debug(maxRuleIds)
     # check that the files are not empty
     if sum(1 for line in open(rp2paths_compounds))<=1:
         logging.error('RP2paths compounds is empty')

@@ -31,7 +31,7 @@ class rpReader:
     #  @param self The object pointer
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        self.logger.info('Starting instance of rpReader')
+        self.logger.debug('Starting instance of rpReader')
         self.deprecatedCID_cid = None
         self.deprecatedRID_rid = None
         self.cid_strc = None
@@ -218,7 +218,7 @@ class rpReader:
                   species_group_id='central_species',
                   sink_species_group_id='rp_sink_species',
                   pubchem_search=False):
-        self.logger.info(maxRuleIds)
+        self.logger.debug(maxRuleIds)
         rp_strc = self._compounds(rp2paths_compounds)
         rp_transformation, sink_molecules = self._transformation(rp2_pathways)
         return self._outPathsToSBML(rp_strc,
@@ -301,7 +301,7 @@ class rpReader:
                 return {}
         next(reader)
         for row in reader:
-            logging.info(row)
+            self.logger.debug(row)
             if not row[1] in rp_transformation:
                 rp_transformation[row[1]] = {}
                 rp_transformation[row[1]]['rule'] = row[2]
@@ -309,8 +309,8 @@ class rpReader:
             if row[7]=='1':
                 for i in row[8].replace(']', '').replace('[', '').replace(' ', '').split(','):
                     sink_molecules.append(i)
-        self.logger.info(rp_transformation)
-        self.logger.info(sink_molecules)
+        self.logger.debug(rp_transformation)
+        self.logger.debug(sink_molecules)
         return rp_transformation, list(set(sink_molecules))
 
 
@@ -340,14 +340,14 @@ class rpReader:
                         species_group_id='central_species',
                         sink_species_group_id='rp_sink_species',
                         pubchem_search=False):
-        self.logger.info(maxRuleIds)
+        self.logger.debug(maxRuleIds)
         #try:
         rp_paths = {}
         sink_species = []
         #reactions = self.rr_reactionsingleRule.split('__')[1]s
         #with open(path, 'r') as f:
         #### we might pass binary in the REST version
-        self.logger.info('Parsing the following file: '+str(rp2paths_outPath))
+        self.logger.debug('Parsing the following file: '+str(rp2paths_outPath))
         if isinstance(rp2paths_outPath, bytes):
             reader = csv.reader(io.StringIO(rp2paths_outPath.decode('utf-8')))
         else:
@@ -358,7 +358,7 @@ class rpReader:
         for row in reader:
             #in_sink
             #in_sink = int(row[7])
-            self.logger.info('Parsing the row: '+str(row))
+            self.logger.debug('Parsing the row: '+str(row))
             #Remove all illegal characters in SBML ids
             row[3] = row[3].replace("'", "").replace('-', '_').replace('+', '')
             try:
@@ -608,9 +608,9 @@ class rpReader:
                     #pass the information to create the species
                     if chemName:
                         chemName = chemName.replace("'", "")
-                    self.logger.info('Creating species: '+str(chemName)+' ('+str(meta)+')')
+                    self.logger.debug('Creating species: '+str(chemName)+' ('+str(meta)+')')
                     if meta in sink_molecules:
-                        self.logger.info('Species is sink: '+str(sink_species_group_id))
+                        self.logger.debug('Species is sink: '+str(sink_species_group_id))
                         rpsbml.createSpecies(meta,
                                              compartment_id,
                                              chemName,
@@ -633,8 +633,8 @@ class rpReader:
                 for step in steps:
                     #add the substep to the model
                     step['sub_step'] = altPathNum
-                    self.logger.info('Creating reaction: '+str('RP'+str(step['step'])))
-                    self.logger.info('Steps:'+str(step))
+                    self.logger.debug('Creating reaction: '+str('RP'+str(step['step'])))
+                    self.logger.debug('Steps:'+str(step))
                     rpsbml.createReaction('RP'+str(step['step']), # parameter 'name' of the reaction deleted : 'RetroPath_Reaction_'+str(step['step']),
                                           upper_flux_bound,
                                           lower_flux_bound,
@@ -653,7 +653,7 @@ class rpReader:
                               'transformation_id': None,
                               'rule_score': None,
                               'rule_ori_reac': None}
-                self.logger.info('Creating reaction: RP1_sink')
+                self.logger.debug('Creating reaction: RP1_sink')
                 rpsbml.createReaction('RP1_sink',
                                       upper_flux_bound,
                                       lower_flux_bound,
@@ -1036,6 +1036,9 @@ class rpReader:
                 altPathNum += 1
     '''
 
+
+
+    """
     #############################################################################################
     ############################### TSV data tsv ################################################
     #############################################################################################
@@ -1403,7 +1406,7 @@ class rpReader:
             return {}
         else:
             return sbml_paths
-
+    """
 
 
     '''
