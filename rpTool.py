@@ -400,7 +400,7 @@ class rpReader:
             sub_path_step = 1
             for singleRule in ruleIds:
                 tmpReac = {'rule_id': singleRule.split('__')[0],
-                           'rule_ori_reac': {'mnxr': singleRule.split('__')[1]},
+                           'rule_ori_reac': singleRule.split('__')[1],
                            'rule_score': self.rr_reactions[singleRule.split('__')[0]][singleRule.split('__')[1]]['rule_score'],
                            'right': {},
                            'left': {},
