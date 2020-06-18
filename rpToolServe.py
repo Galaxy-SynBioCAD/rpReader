@@ -13,17 +13,11 @@ import rpTool as rpReader
 import rpCache
 
 logging.basicConfig(
-    #level=logging.DEBUG,
-    level=logging.WARNING,
+    level=logging.DEBUG,
+    #level=logging.WARNING,
     format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
     datefmt='%d-%m-%Y %H:%M:%S',
 )
-
-'''
-logging.disable(logging.INFO)
-logging.disable(logging.DEBUG)
-logging.disable(logging.WARNING)
-'''
 
 ## RetroPath2.0 reader for local packages
 #
@@ -211,6 +205,7 @@ def main_rp2(outputTar,
         rpreader.comp_xref = rpcache.comp_xref
         rpreader.xref_comp = rpcache.xref_comp
         rpreader.chebi_cid = rpcache.chebi_cid
+        rpreader.cid_name = rpcache.cid_name
         #outputTar_bytes = io.BytesIO()
         #### MEM #####
         """
@@ -275,6 +270,7 @@ def main_tsv(outputTar,
         rpreader.comp_xref = rpcache.comp_xref
         rpreader.xref_comp = rpcache.xref_comp
         rpreader.chebi_cid = rpcache.chebi_cid
+        rpreader.cid_name = rpcache.cid_name
         with tempfile.TemporaryDirectory() as tmpOutputFolder:
             rpreader.TSVtoSBML(tsvfile,
                                tmpOutputFolder,
