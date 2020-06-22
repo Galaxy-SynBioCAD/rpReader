@@ -1,0 +1,3 @@
+  <section id="sbc" name="SynBioCAD">
+    <tool file="rpReader/code/wrap_rp2Reader.xml" />
+  </section>
