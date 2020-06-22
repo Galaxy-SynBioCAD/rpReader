@@ -1,4 +1,4 @@
-FROM brsynth/rpcache:newrules
+FROM brsynth/rpcache:dev
 
 COPY rpTool.py /home/
 COPY rpToolServe.py /home/

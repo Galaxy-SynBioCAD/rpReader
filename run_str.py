@@ -59,6 +59,7 @@ def main(reaction_string,
                                                  command,
                                                  detach=True,
                                                  stderr=True,
+                                                 remove=True,
                                                  volumes={tmpOutputFolder+'/': {'bind': '/home/tmp_output', 'mode': 'rw'}})
         container.wait()
         err = container.logs(stdout=False, stderr=True)

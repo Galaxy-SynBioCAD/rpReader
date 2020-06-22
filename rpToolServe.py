@@ -127,6 +127,7 @@ def main_string(outputTar,
          pathway_id='rp_pathway',
          species_group_id='central_species'):
         #pass the cache parameters to the rpReader
+        """
         rpreader = rpReader.rpReader()
         rpcache = rpToolCache.rpToolCache()
         rpreader.deprecatedCID_cid = rpcache.deprecatedCID_cid
@@ -137,6 +138,16 @@ def main_string(outputTar,
         rpreader.cid_xref = rpcache.cid_xref
         rpreader.comp_xref = rpcache.comp_xref
         rpreader.xref_comp = rpcache.xref_comp
+        """
+        rpreader.deprecatedCID_cid = rpcache.getDeprecatedCID()
+        rpreader.deprecatedRID_rid = rpcache.getDeprecatedRID()
+        rpreader.cid_strc = rpcache.getCIDstrc()
+        rpreader.inchikey_cid = rpcache.getInchiKeyCID()
+        rpreader.rr_reactions = rpcache.getRRreactions()
+        rpreader.cid_xref = rpcache.getCIDxref()
+        rpreader.xref_comp, rpreader.comp_xref = rpcache.getCompXref()
+        rpreader.chebi_cid = rpcache.getChebiCID()
+        rpreader.cid_name = rpcache.getCIDname()
         outputTar_bytes = io.BytesIO()
         #### MEM #####
         """
@@ -196,6 +207,7 @@ def main_rp2(outputTar,
         rpreader = rpReader.rpReader()
         #rpcache = rpToolCache.rpToolCache()
         rpcache = rpCache.rpCache()
+        """
         rpreader.deprecatedCID_cid = rpcache.deprecatedCID_cid
         rpreader.deprecatedRID_rid = rpcache.deprecatedRID_rid
         rpreader.cid_strc = rpcache.cid_strc
@@ -206,6 +218,16 @@ def main_rp2(outputTar,
         rpreader.xref_comp = rpcache.xref_comp
         rpreader.chebi_cid = rpcache.chebi_cid
         rpreader.cid_name = rpcache.cid_name
+        """
+        rpreader.deprecatedCID_cid = rpcache.getDeprecatedCID()
+        rpreader.deprecatedRID_rid = rpcache.getDeprecatedRID()
+        rpreader.cid_strc = rpcache.getCIDstrc()
+        rpreader.inchikey_cid = rpcache.getInchiKeyCID()
+        rpreader.rr_reactions = rpcache.getRRreactions()
+        rpreader.cid_xref = rpcache.getCIDxref()
+        rpreader.xref_comp, rpreader.comp_xref = rpcache.getCompXref()
+        rpreader.chebi_cid = rpcache.getChebiCID()
+        rpreader.cid_name = rpcache.getCIDname()
         #outputTar_bytes = io.BytesIO()
         #### MEM #####
         """
@@ -238,13 +260,13 @@ def main_rp2(outputTar,
                              outputTar)
         if not isOK:
             logging.error('Function returned an error')
-        '''
+        """
         ########IMPORTANT######
         outputTar_bytes.seek(0)
         #######################
         with open(outputTar, 'wb') as f:
             shutil.copyfileobj(outputTar_bytes, f, length=131072)
-        '''
+        """
 
 ##
 #
@@ -261,16 +283,15 @@ def main_tsv(outputTar,
         rpreader = rpReader.rpReader()
         #rpcache = rpToolCache.rpToolCache()
         rpcache = rpCache.rpCache()
-        rpreader.deprecatedCID_cid = rpcache.deprecatedCID_cid
-        rpreader.deprecatedRID_rid = rpcache.deprecatedRID_rid
-        rpreader.cid_strc = rpcache.cid_strc
-        rpreader.inchikey_cid = rpcache.inchikey_cid
-        rpreader.rr_reactions = rpcache.rr_reactions
-        rpreader.cid_xref = rpcache.cid_xref
-        rpreader.comp_xref = rpcache.comp_xref
-        rpreader.xref_comp = rpcache.xref_comp
-        rpreader.chebi_cid = rpcache.chebi_cid
-        rpreader.cid_name = rpcache.cid_name
+        rpreader.deprecatedCID_cid = rpcache.getDeprecatedCID()
+        rpreader.deprecatedRID_rid = rpcache.getDeprecatedRID()
+        rpreader.cid_strc = rpcache.getCIDstrc()
+        rpreader.inchikey_cid = rpcache.getInchiKeyCID()
+        rpreader.rr_reactions = rpcache.getRRreactions()
+        rpreader.cid_xref = rpcache.getCIDxref()
+        rpreader.xref_comp, rpreader.comp_xref = rpcache.getCompXref()
+        rpreader.chebi_cid = rpcache.getChebiCID()
+        rpreader.cid_name = rpcache.getCIDname()
         with tempfile.TemporaryDirectory() as tmpOutputFolder:
             rpreader.TSVtoSBML(tsvfile,
                                tmpOutputFolder,
