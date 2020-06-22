@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Created on March 24 2020
+Created on September 21 2019
 
 @author: Melchior du Lac
-@description: Convert tsv to SBML files
+@description: Extract the sink from an SBML into RP2 friendly format
 
 """
 import argparse
@@ -17,13 +17,14 @@ import docker
 ##
 #
 #
-def main(tsvfile,
-         output,
-         upper_flux_bound=999999,
-         lower_flux_bound=0,
-         compartment_id='MNXC3',
-         pathway_id='rp_pathway',
-         species_group_id='central_species'):
+def main(reaction_string,
+          ec,
+          upper_flux_bound,
+          lower_flux_bound,
+          pathway_id,
+          compartment_id,
+          species_group_id,
+          output)
     docker_client = docker.from_env()
     image_str = 'brsynth/rpreader-standalone:dev'
     try:
@@ -37,23 +38,23 @@ def main(tsvfile,
             logging.error('Cannot pull image: '+str(image_str))
             exit(1)
     with tempfile.TemporaryDirectory() as tmpOutputFolder:
-        shutil.copy(tsvfile, tmpOutputFolder+'/tsvfile.tsv')
-        command = ['python',
-                   '/home/tool_tsvReader.py',
-                   '-tsvfile',
-                   '/home/tmp_output/tsvfile.tsv',
+        command = ['/home/single_string.py',
+                   '-reaction_string',
+                   reaction_string,
+                   '-ec',
+                   ec,
                    '-upper_flux_bound',
-                   str(upper_flux_bound),
+                   upper_flux_bound,
                    '-lower_flux_bound',
-                   str(lower_flux_bound),
+                   lower_flux_bound,
                    '-pathway_id',
-                   str(pathway_id),
+                   pathway_id,
                    '-compartment_id',
-                   str(compartment_id),
+                   compartment_id,
                    '-species_group_id',
-                   str(species_group_id),
+                   species_group_id,
                    '-output',
-                   '/home/tmp_output/output.dat']
+                   output]
         container = docker_client.containers.run(image_str,
                                                  command,
                                                  detach=True,
@@ -62,11 +63,10 @@ def main(tsvfile,
                                                  volumes={tmpOutputFolder+'/': {'bind': '/home/tmp_output', 'mode': 'rw'}})
         container.wait()
         err = container.logs(stdout=False, stderr=True)
-        err_str = err.decode('utf-8') 
+        err_str = err.decode('utf-8')
         print(err_str)
         if not 'ERROR' in err_str:
             shutil.copy(tmpOutputFolder+'/output.dat', output)
-        #shutil.copy(tmpOutputFolder+'/output.dat', output)
         container.remove()
 
 
@@ -74,8 +74,9 @@ def main(tsvfile,
 #
 #
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser('Convert TSV file to SBML files')
-    parser.add_argument('-tsvfile', type=str)
+    parser = argparse.ArgumentParser('Convert the results of RP2 and rp2paths to SBML files')
+    parser.add_argument('-reaction_string', type=str)
+    parser.add_argument('-ec', type=str, default='')
     parser.add_argument('-upper_flux_bound', type=int, default=999999)
     parser.add_argument('-lower_flux_bound', type=int, default=0)
     parser.add_argument('-pathway_id', type=str, default='rp_pathway')
@@ -83,10 +84,11 @@ if __name__ == "__main__":
     parser.add_argument('-species_group_id', type=str, default='central_species')
     parser.add_argument('-output', type=str)
     params = parser.parse_args()
-    main(params.tsvfile,
-         params.output,
-         params.upper_flux_bound,
-         params.lower_flux_bound,
-         params.compartment_id,
-         params.pathway_id,
-         params.species_group_id)
+    main(params.reaction_string,
+          params.ec,
+          params.upper_flux_bound,
+          params.lower_flux_bound,
+          params.pathway_id,
+          params.compartment_id,
+          params.species_group_id,
+          params.output)

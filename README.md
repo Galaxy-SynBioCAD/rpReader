@@ -40,6 +40,14 @@ docker build -t brsynth/rpreader-standalone -f Dockerfile .
 
 To test untar the test.tar.xz file and run the following command:
 
+#### Locally
+
+```
+python tool_rp2Reader.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test/rp2_pathways.csv -rp2paths_pathways test/rp2paths_pathways.csv -output test/test_rpReader.tar
+```
+
+#### Docker
+
 ```
 python run_rp2.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test/rp2_pathways.csv -rp2paths_pathways test/rp2paths_pathways.csv -output test/test_rpReader.tar
 ```
