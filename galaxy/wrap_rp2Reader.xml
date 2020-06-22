@@ -1,0 +1,122 @@
+<tool id="rpReader" name="Pathways to SBML" version="0.1">
+  <description>From the output of RP2Paths and RetroPath2.0, generate SBML pathways with mono-component reactions</description>
+  <requirements>
+    <container type="docker">brsynth/rpreader-standalone:dev</container>
+  </requirements>
+  <stdio>
+    <regex match="WARNING" level="warning" />
+    <regex match="ERROR" level="error" />
+  </stdio>
+  <command detect_errors="exit_code"><![CDATA[
+    '$__tool_directory__/tool_rp2Reader.py' -rp2paths_compounds '$rp2paths_compounds' -rp2_pathways '$rp2_pathways' -rp2paths_pathways '$rp2paths_pathways' -output '$output' -maxRuleIds '$adv.maxRuleIds' -compartment_id '$adv.compartment_id' -pathway_id '$adv.pathway_id' -species_group_id '$adv.species_group_id' -upper_flux_bound '$adv.upper_flux_bound' -lower_flux_bound '$adv.lower_flux_bound' -pubchem_search '$adv.pubchem_search'
+  ]]></command>
+  <inputs>
+    <param name="rp2paths_pathways" type="data" format="csv" label="RP2paths pathways" />
+    <param name="rp2paths_compounds" type="data" format="tsv" label="RP2paths compounds" />
+    <param name="rp2_pathways" type="data" format="csv" label="RetroPath2.0 pathways" />
+    <section name="adv" title="Advanced Options" expanded="false">
+      <param name="maxRuleIds" type="integer" value="2" label="Max reaction rules per reaction" />
+      <param name="compartment_id" type="text" value="MNXC3" label="SBML compartment ID" />
+      <param name="pathway_id" type="text" value="rp_pathway" label="SBML heterologous pathway ID" />
+      <param name="species_group_id" type="text" value="central_species" label="SBML central species ID" />
+      <param name="upper_flux_bound" type="integer" value="999999" label="Upper flux bound" />
+      <param name="lower_flux_bound" type="integer" value="0" label="Lower flux bound" />
+      <param name="pubchem_search" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Query PubChem?" />
+    </section>
+  </inputs>
+  <outputs>
+    <data name="output" format="tar" label="Heterologous Pathways" />
+  </outputs>
+  <help><![CDATA[
+Pathways to SBML
+===================
+
+
+This tool takes for input the outputs of both RetroPath2.0 and RP2paths and generates a series of SBML files with mono-component reactions. Since more than one reaction rule may be associated with a single reaction, the best scoring reaction steps are considered before combining them to individual pathways. The number of combinations is controlled by the "Max reaction rules per reaction" parameter in the Advanced Options. The default value is 2, with a minimum of 1 with no maximum. A higher substep value may grow the potential solution size of the possible pathways and is indicated in the filename as the last digit (ex: rp_1_1.sbml and rp_1_2.sbml), but users are warned that this parameter may cause a combinatorial explosion if set too high.
+
+|
+
+The SBML compartment ID determines the name of the compartment in which the pathway will be added to, with a default of "MNXC3" that corresponds to the cytoplasm for MetaNetX models. The "SBML pathway ID" parameter is the ID of the groups containing the heterologous reactions (default: rp_pathway), and the ID of the group containing the chemical species (default: central_species). Similarly, due to the creation of new reactions, the flux bounds need to be specified (default: irreversible reaction with a lower bound of 0 and an upper bound of 99999). Lastly, for those species that do not have cross-references to other databases, the tool provides the user an ability to query the PubChem REST web service using the InChIKey to retrieve more information.
+
+.. image:: https://raw.githubusercontent.com/Galaxy-SynBioCAD/rpReader/standalone-dev/code/img/rpReader_diagram.png 
+	:width: 80 %
+	:align: center
+
+|
+
+The above figure illustrates how the tool converts the output of RP2paths to a collection of SBML files with the heterologous pathways stored within. Highlighted in red is a case where multiple rules are associated with a single reaction. Under such a condition, the tool calculates all the possible sub-paths of the pathway.
+
+Input
+-----
+
+Required:
+
+
+* **-rp2paths_pathways**\ : (string) Path to the rp2paths pathways file
+* **-rp2paths_compounds**\ : (string) Path to the rp2paths compounds file
+* **-rp2_pathways**\ : (string) Path to the RetroPath2.0 pathways file
+
+Advanced options:
+
+
+* **-upper_flux_bound**\ : (integer, default=9999) Upper flux bound value
+* **-lower_flux_bound**\ : (integer, default=0) Lower flux bound value
+* **-maxRuleIds**\ : (integer, default=2) Number of reaction rules per reaction
+* **-pathway_id**\ : (string, default=rp_pathway) ID of the heterologous pathway
+* **-compartment_id**\ : (string, default=MNXC3 (i.e. cytoplasm)) Heterologous pathway compartment ID
+* **-species_group_id**\ : (string, default=central_species) ID of the central species, i.e. not cofactors, in the heterologous reactions
+
+Output
+------
+
+
+* **-outputTar**\ : (string) Path to the output tar.xz file
+
+
+Project Links
+---------------------
+
+* `GitHub <https://github.com/Galaxy-SynBioCAD/rpreader-standalone>`_
+* `Docker <https://hub.docker.com/r/brsynth/rpreader-standalone>`_
+
+
+Version
+-------
+
+0.1
+
+Authors
+-------
+
+
+* **Melchior du Lac**
+
+License
+-------
+
+`MIT <https://raw.githubusercontent.com/Galaxy-SynBioCAD/rpReader/standalone-dev/LICENSE>`_
+
+
+Acknowledgments
+---------------
+
+
+* Thomas Duigou
+* Joan Hérisson
+
+]]></help>
+  <citations>
+    <citation type="bibtex">
+@article{hucka2016sbml,
+  title={SBML Level 3 package: Groups, Version 1 Release 1},
+  author={Hucka, Michael and Smith, Lucian P},
+  journal={Journal of integrative bioinformatics},
+  volume={13},
+  number={3},
+  pages={8--29},
+  year={2016},
+  publisher={De Gruyter}
+}	
+    </citation>
+  </citations>
+</tool>
