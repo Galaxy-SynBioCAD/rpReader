@@ -30,11 +30,7 @@ def main(rp2_pathways,
          sink_species_group_id='rp_sink_species',
          pubchem_search='False'):
     docker_client = docker.from_env()
-<<<<<<< HEAD
     image_str = 'brsynth/rpreader-standalone'
-=======
-    image_str = 'brsynth/rpreader-standalone:newrules'
->>>>>>> standalone-dev
     try:
         image = docker_client.images.get(image_str)
     except docker.errors.ImageNotFound:

@@ -702,7 +702,7 @@ class rpReader:
 
     ## Function to parse the TSV of measured heterologous pathways to SBML
     #
-    # TODO: update this to not rely on MNX
+    # TODO: update this to the new compartements and others
     # Given the TSV of measured pathways, parse them to a dictionnary, readable to next be parsed
     # to SBML
     #
@@ -863,7 +863,7 @@ class rpReader:
     # @param self Object pointer
     # @param inFile Input file
     # @param compartment_id compartment of the
-    # TODO: update this 
+    # TODO: update this with the new SBML groups
     def TSVtoSBML(self,
                   inFile,
                   tmpOutputFolder=None,
@@ -1064,9 +1064,6 @@ class rpReader:
             return sbml_paths
 
 
-
-
-    '''TODO: update this function with the new parameters etc...
 
     #######################################################################
     ############################# JSON input ##############################
@@ -1432,7 +1429,6 @@ class rpReader:
                 rpsbml.createFluxObj('rpFBA_obj', 'RP1_sink', 1, True)
                 sbml_paths['rp_'+str(step['path_id'])+'_'+str(altPathNum)] = rpsbml
                 altPathNum += 1
-    '''
 
 
 
