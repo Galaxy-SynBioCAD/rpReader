@@ -78,9 +78,10 @@ def main(rp2_pathways,
         container.wait()
         err = container.logs(stdout=False, stderr=True)
         err_str = err.decode('utf-8') 
-        print(err_str)
         if not 'ERROR' in err_str:
             shutil.copy(tmpOutputFolder+'/output.dat', output)
+        else:
+            print(err_str)
         container.remove()
 
 
