@@ -1,4 +1,5 @@
 *.swp
+validation_v2.tsv
 rpSBML.py
 OLD/
 __pycache__/

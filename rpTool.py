@@ -871,10 +871,12 @@ class rpReader:
                   lower_flux_bound=0,
                   compartment_id='MNXC3',
                   pathway_id='rp_pathway',
-                  species_group_id='central_species'):
+                  species_group_id='central_species',
+                  header_name=''):
         data = self._parseTSV(inFile)
         sbml_paths = {}
-        header_name = inFile.split('/')[-1].replace('.tsv', '').replace('.csv', '')
+        if header_name=='':
+            header_name = inFile.split('/')[-1].replace('.tsv', '').replace('.csv', '')
         #TODO: need to exit at this loop
         for path_id in data:
             try:

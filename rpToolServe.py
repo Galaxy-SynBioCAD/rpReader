@@ -14,7 +14,8 @@ import rpCache
 
 logging.basicConfig(
     #level=logging.DEBUG,
-    level=logging.WARNING,
+    #level=logging.WARNING,
+    level=logging.ERROR,
     format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
     datefmt='%d-%m-%Y %H:%M:%S',
 )
@@ -300,8 +301,6 @@ def main_tsv(outputTar,
                                compartment_id,
                                pathway_id,
                                species_group_id)
-            logging.error(glob.glob(tmpOutputFolder+'/*'))
-            logging.error(outputTar)
             if len(glob.glob(tmpOutputFolder+'/*'))==0:
                 logging.error('rpReader did not generate any results')
                 return False

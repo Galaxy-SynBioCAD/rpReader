@@ -25,7 +25,7 @@ def main(tsvfile,
          pathway_id='rp_pathway',
          species_group_id='central_species'):
     docker_client = docker.from_env()
-    image_str = 'brsynth/rpreader-standalone:dev'
+    image_str = 'brsynth/rpreader-standalone'
     try:
         image = docker_client.images.get(image_str)
     except docker.errors.ImageNotFound:
@@ -58,14 +58,14 @@ def main(tsvfile,
                                                  command,
                                                  detach=True,
                                                  stderr=True,
-                                                 remove=True,
                                                  volumes={tmpOutputFolder+'/': {'bind': '/home/tmp_output', 'mode': 'rw'}})
         container.wait()
         err = container.logs(stdout=False, stderr=True)
         err_str = err.decode('utf-8') 
-        print(err_str)
         if not 'ERROR' in err_str:
             shutil.copy(tmpOutputFolder+'/output.dat', output)
+        else:
+            print(err_str)
         #shutil.copy(tmpOutputFolder+'/output.dat', output)
         container.remove()
 
