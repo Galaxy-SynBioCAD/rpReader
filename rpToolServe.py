@@ -119,7 +119,7 @@ def rp2Reader_hdd(rpreader,
 
 ##
 #
-#
+# DEPRECATED
 def main_string(outputTar,
          upper_flux_bound=999999,
          lower_flux_bound=0,

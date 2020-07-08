@@ -23,7 +23,8 @@ def main(tsvfile,
          lower_flux_bound=0,
          compartment_id='MNXC3',
          pathway_id='rp_pathway',
-         species_group_id='central_species'):
+         species_group_id='central_species',
+         sink_species_group_id='rp_sink_species'):
     docker_client = docker.from_env()
     image_str = 'brsynth/rpreader-standalone'
     try:
@@ -52,6 +53,8 @@ def main(tsvfile,
                    str(compartment_id),
                    '-species_group_id',
                    str(species_group_id),
+                   '-sink_species_group_id',
+                   str(sink_species_group_id),
                    '-output',
                    '/home/tmp_output/output.dat']
         container = docker_client.containers.run(image_str,
@@ -81,6 +84,7 @@ if __name__ == "__main__":
     parser.add_argument('-pathway_id', type=str, default='rp_pathway')
     parser.add_argument('-compartment_id', type=str, default='MNXC3')
     parser.add_argument('-species_group_id', type=str, default='central_species')
+    parser.add_argument('-sink_species_group_id', type=str, default='rp_sink_species')
     parser.add_argument('-output', type=str)
     params = parser.parse_args()
     main(params.tsvfile,
@@ -89,4 +93,5 @@ if __name__ == "__main__":
          params.lower_flux_bound,
          params.compartment_id,
          params.pathway_id,
-         params.species_group_id)
+         params.species_group_id,
+         params.sink_species_group_id)

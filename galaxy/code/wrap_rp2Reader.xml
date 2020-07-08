@@ -15,8 +15,8 @@
     <param name="rp2paths_compounds" type="data" format="tsv" label="RP2paths compounds" />
     <param name="rp2_pathways" type="data" format="csv" label="RetroPath2.0 pathways" />
     <section name="adv" title="Advanced Options" expanded="false">
-      <param name="rules_rall" type="data" optional="true" multiple="false" format="tsv" label="Reaction rule files" />
-      <param name="compounds" type="data" optional="true" multiple="false" format="tsv" label="List of compounds contained in reaction rules" />
+      <param name="rules_rall" type="data" optional="true" multiple="false" format="tsv" label="Reaction Rules" />
+      <param name="compounds" type="data" optional="true" multiple="false" format="tsv" label="Reaction Rules Compounds" />
       <param name="maxRuleIds" type="integer" value="2" label="Max reaction rules per reaction" />
       <param name="compartment_id" type="text" value="MNXC3" label="SBML compartment ID" />
       <param name="pathway_id" type="text" value="rp_pathway" label="SBML heterologous pathway ID" />
