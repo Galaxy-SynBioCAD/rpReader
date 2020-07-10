@@ -657,6 +657,9 @@ class rpReader:
                                              species_group_id)
                 #4) add the complete reactions and their annotations
                 for step in steps:
+                    self.logger.debug('#########################################')
+                    self.logger.debug(step)
+                    self.logger.debug('#########################################')
                     #add the substep to the model
                     step['sub_step'] = altPathNum
                     self.logger.debug('Creating reaction: '+str('RP'+str(step['step'])))
@@ -1016,6 +1019,9 @@ class rpReader:
                     reac_xref['ec'] = data[path_id]['steps'][stepNum]['ec_numbers']
                 if 'uniprot' in data[path_id]['steps'][stepNum]:
                     reac_xref['uniprot'] = data[path_id]['steps'][stepNum]['uniprot']
+                self.logger.debug('#########################################')
+                self.logger.debug(toSend)
+                self.logger.debug('#########################################')
                 rpsbml.createReaction(header_name+'_Step'+str(stepNum),
                                       upper_flux_bound,
                                       lower_flux_bound,
