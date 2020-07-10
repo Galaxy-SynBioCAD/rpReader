@@ -1,4 +1,5 @@
 import os
+import copy
 import sys
 import io
 import tarfile
@@ -116,10 +117,9 @@ def rp2Reader_hdd(rpreader,
                 ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
     return True
 
-'''
 ##
 #
-#
+# DEPRECATED
 def main_string(outputTar,
          upper_flux_bound=999999,
          lower_flux_bound=0,
@@ -128,18 +128,8 @@ def main_string(outputTar,
          pathway_id='rp_pathway',
          species_group_id='central_species'):
         #pass the cache parameters to the rpReader
-        """
+        rpcache = rpCache.rpCache()
         rpreader = rpReader.rpReader()
-        rpcache = rpToolCache.rpToolCache()
-        rpreader.deprecatedCID_cid = rpcache.deprecatedCID_cid
-        rpreader.deprecatedRID_rid = rpcache.deprecatedRID_rid
-        rpreader.cid_strc = rpcache.cid_strc
-        rpreader.inchikey_cid = rpcache.inchikey_cid
-        rpreader.rr_reactions = rpcache.rr_reactions
-        rpreader.cid_xref = rpcache.cid_xref
-        rpreader.comp_xref = rpcache.comp_xref
-        rpreader.xref_comp = rpcache.xref_comp
-        """
         rpreader.deprecatedCID_cid = rpcache.getDeprecatedCID()
         rpreader.deprecatedRID_rid = rpcache.getDeprecatedRID()
         rpreader.cid_strc = rpcache.getCIDstrc()
@@ -186,7 +176,6 @@ def main_string(outputTar,
         #######################
         with open(outputTar, 'wb') as f:
             shutil.copyfileobj(outputTar_bytes, f, length=131072)
-'''
 
 ##
 #
@@ -208,18 +197,6 @@ def main_rp2(outputTar,
         rpreader = rpReader.rpReader()
         #rpcache = rpToolCache.rpToolCache()
         rpcache = rpCache.rpCache()
-        """
-        rpreader.deprecatedCID_cid = rpcache.deprecatedCID_cid
-        rpreader.deprecatedRID_rid = rpcache.deprecatedRID_rid
-        rpreader.cid_strc = rpcache.cid_strc
-        rpreader.inchikey_cid = rpcache.inchikey_cid
-        rpreader.rr_reactions = rpcache.rr_reactions
-        rpreader.cid_xref = rpcache.cid_xref
-        rpreader.comp_xref = rpcache.comp_xref
-        rpreader.xref_comp = rpcache.xref_comp
-        rpreader.chebi_cid = rpcache.chebi_cid
-        rpreader.cid_name = rpcache.cid_name
-        """
         rpreader.deprecatedCID_cid = rpcache.getDeprecatedCID()
         rpreader.deprecatedRID_rid = rpcache.getDeprecatedRID()
         rpreader.cid_strc = rpcache.getCIDstrc()
@@ -311,3 +288,98 @@ def main_tsv(outputTar,
                     info.size = os.path.getsize(sbml_path)
                     ot.addfile(tarinfo=info, fileobj=open(sbml_path, 'rb'))
         return True
+
+##
+#
+#
+#TODO: change pathway_id to pathway_group_id
+def main_extrules(outputTar,
+                  rp2_pathways,
+                  rp2paths_pathways,
+                  rp2paths_compounds,
+                  rules_rall_tsv,
+                  compounds_tsv,
+                  upper_flux_bound=999999,
+                  lower_flux_bound=0,
+                  maxRuleIds=2,
+                  compartment_id='MNXC3',
+                  pathway_id='rp_pathway',
+                  species_group_id='central_species',
+                  sink_species_group_id='rp_sink_species',
+                  pubchem_search=False):
+        #pass the cache parameters to the rpReader
+        rpreader = rpReader.rpReader()
+        ##### parse and merge the input files ####
+        rpcache = rpCache.rpCache()
+        #if you want to merge
+        '''
+        #compounds strc
+        rpcache.retroRulesStrc(compounds_tsv)
+        new_cid_strc = copy.deepcopy(rpcache.cid_strc)
+        rpcache.cid_strc = {**rpcache.getCIDstrc(), **new_cid_strc}
+        rpcache._inchikeyCID()
+        rpreader.cid_strc = rpcache.cid_strc
+        rpreader.inchikey_cid = rpcache.inchikey_cid
+        #reaction rules
+        rpcache.retroReactions(rules_rall_tsv)
+        new_rr_reactions = copy.deepcopy(rpcache.rr_reactions)
+        rpreader.rr_reactions = {**rpcache.getRRreactions(), **new_rr_reactions}
+        '''
+        #if you want to overwrite
+        #compounds strc
+        rpcache.retroRulesStrc(compounds_tsv)
+        new_cid_strc = copy.deepcopy(rpcache.cid_strc)
+        rpcache.cid_strc = {**rpcache.getCIDstrc(), **new_cid_strc}
+        rpcache._inchikeyCID()
+        rpreader.cid_strc = rpcache.cid_strc
+        rpreader.inchikey_cid = rpcache.inchikey_cid
+        #reaction rules
+        rpcache.retroReactions(rules_rall_tsv)
+        rpreader.rr_reactions = rpcache.rr_reactions
+        ####
+        rpreader.deprecatedCID_cid = rpcache.getDeprecatedCID()
+        rpreader.deprecatedRID_rid = rpcache.getDeprecatedRID()
+        rpreader.inchikey_cid = rpcache.getInchiKeyCID()
+        rpreader.cid_xref = rpcache.getCIDxref()
+        rpreader.xref_comp, rpreader.comp_xref = rpcache.getCompXref()
+        rpreader.chebi_cid = rpcache.getChebiCID()
+        rpreader.cid_name = rpcache.getCIDname()
+        #outputTar_bytes = io.BytesIO()
+        #### MEM #####
+        """
+        if not rp2Reader_mem(rpreader,
+                    rp2_pathways,
+                    rp2paths_pathways,
+                    rp2paths_compounds,
+                    int(upper_flux_bound),
+                    int(lower_flux_bound),
+                    int(maxRuleIds),
+                    pathway_id,
+                    compartment_id,
+                    species_group_id,
+                    outputTar):
+            abort(204)
+        """
+        #### HDD #####
+        isOK = rp2Reader_hdd(rpreader,
+                             rp2_pathways,
+                             rp2paths_pathways,
+                             rp2paths_compounds,
+                             int(upper_flux_bound),
+                             int(lower_flux_bound),
+                             int(maxRuleIds),
+                             pathway_id,
+                             compartment_id,
+                             species_group_id,
+                             sink_species_group_id,
+                             pubchem_search,
+                             outputTar)
+        if not isOK:
+            logging.error('Function returned an error')
+        """
+        ########IMPORTANT######
+        outputTar_bytes.seek(0)
+        #######################
+        with open(outputTar, 'wb') as f:
+            shutil.copyfileobj(outputTar_bytes, f, length=131072)
+        """

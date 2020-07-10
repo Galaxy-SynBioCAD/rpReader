@@ -1,27 +1,29 @@
 <tool id="rpReader" name="Pathways to SBML" version="0.1">
   <description>From the output of RP2Paths and RetroPath2.0, generate SBML pathways with mono-component reactions</description>
   <requirements>
-    <container type="docker">brsynth/rpreader-standalone:dev</container>
+    <container type="docker">brsynth/rpreader-standalone:extrules</container>
   </requirements>
   <stdio>
     <regex match="WARNING" level="warning" />
     <regex match="ERROR" level="error" />
   </stdio>
   <command detect_errors="exit_code"><![CDATA[
-    '$__tool_directory__/tool_rp2Reader.py' -rp2paths_compounds '$rp2paths_compounds' -rp2_pathways '$rp2_pathways' -rp2paths_pathways '$rp2paths_pathways' -output '$output' -maxRuleIds '$adv.maxRuleIds' -compartment_id '$adv.compartment_id' -pathway_id '$adv.pathway_id' -species_group_id '$adv.species_group_id' -upper_flux_bound '$adv.upper_flux_bound' -lower_flux_bound '$adv.lower_flux_bound' -pubchem_search '$adv.pubchem_search'
+    '$__tool_directory__/tool_rp2Reader.py' -rp2paths_compounds '$rp2paths_compounds' -rp2_pathways '$rp2_pathways' -rp2paths_pathways '$rp2paths_pathways' -output '$output' -maxRuleIds '$adv.maxRuleIds' -compartment_id '$adv.compartment_id' -pathway_id '$adv.pathway_id' -species_group_id '$adv.species_group_id' -upper_flux_bound '$adv.upper_flux_bound' -lower_flux_bound '$adv.lower_flux_bound' -pubchem_search '$adv.pubchem_search' -rules_rall '$adv.rules_rall' -compounds '$adv.compounds'
   ]]></command>
   <inputs>
     <param name="rp2paths_pathways" type="data" format="csv" label="RP2paths pathways" />
     <param name="rp2paths_compounds" type="data" format="tsv" label="RP2paths compounds" />
     <param name="rp2_pathways" type="data" format="csv" label="RetroPath2.0 pathways" />
     <section name="adv" title="Advanced Options" expanded="false">
+      <param name="rules_rall" type="data" optional="true" multiple="false" format="tsv" label="Reaction Rules" />
+      <param name="compounds" type="data" optional="true" multiple="false" format="tsv" label="Reaction Rules Compounds" />
       <param name="maxRuleIds" type="integer" value="2" label="Max reaction rules per reaction" />
       <param name="compartment_id" type="text" value="MNXC3" label="SBML compartment ID" />
       <param name="pathway_id" type="text" value="rp_pathway" label="SBML heterologous pathway ID" />
       <param name="species_group_id" type="text" value="central_species" label="SBML central species ID" />
       <param name="upper_flux_bound" type="integer" value="999999" label="Upper flux bound" />
       <param name="lower_flux_bound" type="integer" value="0" label="Lower flux bound" />
-      <param name="pubchem_search" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Query PubChem?" />
+      <param name="pubchem_search" type="boolean" truevalue="True" falsevalue="False" checked="false" label="Query PubChem? (Note: can make the tool run slower)" />
     </section>
   </inputs>
   <outputs>
