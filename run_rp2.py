@@ -20,6 +20,8 @@ import docker
 def main(rp2_pathways,
          rp2paths_pathways,
          rp2paths_compounds,
+         rules_rall,
+         compounds,
          output,
          upper_flux_bound=999999,
          lower_flux_bound=0,
@@ -30,7 +32,7 @@ def main(rp2_pathways,
          sink_species_group_id='rp_sink_species',
          pubchem_search='False'):
     docker_client = docker.from_env()
-    image_str = 'brsynth/rpreader-standalone'
+    image_str = 'brsynth/rpreader-standalone:extrules'
     try:
         image = docker_client.images.get(image_str)
     except docker.errors.ImageNotFound:
@@ -56,6 +58,10 @@ def main(rp2_pathways,
                    str(upper_flux_bound),
                    '-lower_flux_bound',
                    str(lower_flux_bound),
+                   '-rules_rall',
+                   str(rules_rall),
+                   '-compounds',
+                   str(compounds),
                    '-maxRuleIds',
                    str(maxRuleIds),
                    '-pathway_id',
@@ -95,6 +101,8 @@ if __name__ == "__main__":
     parser.add_argument('-rp2paths_pathways', type=str)
     parser.add_argument('-upper_flux_bound', type=int, default=999999)
     parser.add_argument('-lower_flux_bound', type=int, default=0)
+    parser.add_argument('-rules_rall', type=str, default='None')
+    parser.add_argument('-compounds', type=str, default='None')
     parser.add_argument('-maxRuleIds', type=int, default=2)
     parser.add_argument('-pathway_id', type=str, default='rp_pathway')
     parser.add_argument('-compartment_id', type=str, default='MNXC3')
@@ -119,6 +127,8 @@ if __name__ == "__main__":
     main(params.rp2_pathways,
          params.rp2paths_pathways,
          params.rp2paths_compounds,
+         params.rules_rall,
+         params.compounds,
          params.output,
          params.upper_flux_bound,
          params.lower_flux_bound,
