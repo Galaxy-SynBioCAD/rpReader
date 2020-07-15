@@ -20,6 +20,8 @@ import docker
 def main(rp2_pathways,
          rp2paths_pathways,
          rp2paths_compounds,
+         rules_rall,
+         compounds,
          output,
          upper_flux_bound=999999,
          lower_flux_bound=0,
@@ -30,7 +32,7 @@ def main(rp2_pathways,
          sink_species_group_id='rp_sink_species',
          pubchem_search='False'):
     docker_client = docker.from_env()
-    image_str = 'brsynth/rpreader-standalone'
+    image_str = 'brsynth/rpreader-standalone:extrules'
     try:
         image = docker_client.images.get(image_str)
     except docker.errors.ImageNotFound:
@@ -45,31 +47,68 @@ def main(rp2_pathways,
         shutil.copy(rp2paths_compounds, tmpOutputFolder+'/rp2paths_compounds.csv')
         shutil.copy(rp2paths_pathways, tmpOutputFolder+'/rp2paths_pathways.csv')
         shutil.copy(rp2_pathways, tmpOutputFolder+'/rp2_pathways.csv')
-        command = ['/home/tool_rp2Reader.py',
-                   '-rp2paths_compounds',
-                   '/home/tmp_output/rp2paths_compounds.csv',
-                   '-rp2_pathways',
-                   '/home/tmp_output/rp2_pathways.csv',
-                   '-rp2paths_pathways',
-                   '/home/tmp_output/rp2paths_pathways.csv',
-                   '-upper_flux_bound',
-                   str(upper_flux_bound),
-                   '-lower_flux_bound',
-                   str(lower_flux_bound),
-                   '-maxRuleIds',
-                   str(maxRuleIds),
-                   '-pathway_id',
-                   str(pathway_id),
-                   '-compartment_id',
-                   str(compartment_id),
-                   '-species_group_id',
-                   str(species_group_id),
-                   '-sink_species_group_id',
-                   str(sink_species_group_id),
-                   '-pubchem_search',
-                   str(pubchem_search),
-                   '-output',
-                   '/home/tmp_output/output.dat']
+        if os.path.exists(rules_rall) and os.path.exists(compounds):
+            shutil.copy(rules_rall, tmpOutputFolder+'/rules_rall.tsv')
+            shutil.copy(compounds, tmpOutputFolder+'/compounds.tsv')
+            command = ['/home/tool_rp2Reader.py',
+                       '-rp2paths_compounds',
+                       '/home/tmp_output/rp2paths_compounds.csv',
+                       '-rp2_pathways',
+                       '/home/tmp_output/rp2_pathways.csv',
+                       '-rp2paths_pathways',
+                       '/home/tmp_output/rp2paths_pathways.csv',
+                       '-upper_flux_bound',
+                       str(upper_flux_bound),
+                       '-lower_flux_bound',
+                       str(lower_flux_bound),
+                       '-rules_rall',
+                       '/home/tmp_output/rules_rall.tsv',
+                       '-compounds',
+                       '/home/tmp_output/compounds.tsv',
+                       '-maxRuleIds',
+                       str(maxRuleIds),
+                       '-pathway_id',
+                       str(pathway_id),
+                       '-compartment_id',
+                       str(compartment_id),
+                       '-species_group_id',
+                       str(species_group_id),
+                       '-sink_species_group_id',
+                       str(sink_species_group_id),
+                       '-pubchem_search',
+                       str(pubchem_search),
+                       '-output',
+                       '/home/tmp_output/output.dat']
+        else:
+            command = ['/home/tool_rp2Reader.py',
+                       '-rp2paths_compounds',
+                       '/home/tmp_output/rp2paths_compounds.csv',
+                       '-rp2_pathways',
+                       '/home/tmp_output/rp2_pathways.csv',
+                       '-rp2paths_pathways',
+                       '/home/tmp_output/rp2paths_pathways.csv',
+                       '-upper_flux_bound',
+                       str(upper_flux_bound),
+                       '-lower_flux_bound',
+                       str(lower_flux_bound),
+                       '-rules_rall',
+                       'None',
+                       '-compounds',
+                       'None',
+                       '-maxRuleIds',
+                       str(maxRuleIds),
+                       '-pathway_id',
+                       str(pathway_id),
+                       '-compartment_id',
+                       str(compartment_id),
+                       '-species_group_id',
+                       str(species_group_id),
+                       '-sink_species_group_id',
+                       str(sink_species_group_id),
+                       '-pubchem_search',
+                       str(pubchem_search),
+                       '-output',
+                       '/home/tmp_output/output.dat']
         container = docker_client.containers.run(image_str,
 												 command,
 												 detach=True,
@@ -78,6 +117,7 @@ def main(rp2_pathways,
         container.wait()
         err = container.logs(stdout=False, stderr=True)
         err_str = err.decode('utf-8') 
+        print(err_str)
         if not 'ERROR' in err_str:
             shutil.copy(tmpOutputFolder+'/output.dat', output)
         else:
@@ -95,6 +135,8 @@ if __name__ == "__main__":
     parser.add_argument('-rp2paths_pathways', type=str)
     parser.add_argument('-upper_flux_bound', type=int, default=999999)
     parser.add_argument('-lower_flux_bound', type=int, default=0)
+    parser.add_argument('-rules_rall', type=str, default='None')
+    parser.add_argument('-compounds', type=str, default='None')
     parser.add_argument('-maxRuleIds', type=int, default=2)
     parser.add_argument('-pathway_id', type=str, default='rp_pathway')
     parser.add_argument('-compartment_id', type=str, default='MNXC3')
@@ -119,6 +161,8 @@ if __name__ == "__main__":
     main(params.rp2_pathways,
          params.rp2paths_pathways,
          params.rp2paths_compounds,
+         params.rules_rall,
+         params.compounds,
          params.output,
          params.upper_flux_bound,
          params.lower_flux_bound,
