@@ -32,7 +32,7 @@ def main(rp2_pathways,
          sink_species_group_id='rp_sink_species',
          pubchem_search='False'):
     docker_client = docker.from_env()
-    image_str = 'brsynth/rpreader-standalone:extrules'
+    image_str = 'brsynth/rpreader-standalone'
     try:
         image = docker_client.images.get(image_str)
     except docker.errors.ImageNotFound:
