@@ -1,7 +1,7 @@
 <tool id="rpReader" name="Pathways to SBML" version="0.1">
   <description>From the output of RP2Paths and RetroPath2.0, generate SBML pathways with mono-component reactions</description>
   <requirements>
-    <container type="docker">brsynth/rpreader-standalone:extrules</container>
+    <container type="docker">brsynth/rpreader-standalone</container>
   </requirements>
   <stdio>
     <regex match="WARNING" level="warning" />
@@ -40,7 +40,7 @@ This tool takes for input the outputs of both RetroPath2.0 and RP2paths and gene
 
 The SBML compartment ID determines the name of the compartment in which the pathway will be added to, with a default of "MNXC3" that corresponds to the cytoplasm for MetaNetX models. The "SBML pathway ID" parameter is the ID of the groups containing the heterologous reactions (default: rp_pathway), and the ID of the group containing the chemical species (default: central_species). Similarly, due to the creation of new reactions, the flux bounds need to be specified (default: irreversible reaction with a lower bound of 0 and an upper bound of 99999). Lastly, for those species that do not have cross-references to other databases, the tool provides the user an ability to query the PubChem REST web service using the InChIKey to retrieve more information.
 
-.. image:: https://raw.githubusercontent.com/Galaxy-SynBioCAD/rpReader/standalone-dev/code/img/rpReader_diagram.png 
+.. image:: https://raw.githubusercontent.com/Galaxy-SynBioCAD/rpReader/standalone/galaxy/img/rpReader_diagram.png
 	:width: 80 %
 	:align: center
 
