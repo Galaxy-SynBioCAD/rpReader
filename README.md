@@ -33,7 +33,7 @@ Advanced options:
 To build the docker locally, run the following command in the root folder of the project:
 
 ```
-docker build -t brsynth/rpreader-standalone:extrules -f Dockerfile .
+docker build -t brsynth/rpreader-standalone:v1 -f Dockerfile .
 ```
 
 ### Running the test

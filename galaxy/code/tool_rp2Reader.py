@@ -23,8 +23,6 @@ if __name__ == "__main__":
     parser.add_argument('-rp2paths_pathways', type=str)
     parser.add_argument('-rp2paths_compounds', type=str)
     parser.add_argument('-output', type=str)
-    parser.add_argument('-rules_rall', type=str, default='None')
-    parser.add_argument('-compounds', type=str, default='None')
     parser.add_argument('-upper_flux_bound', type=int, default=999999)
     parser.add_argument('-lower_flux_bound', type=int, default=0)
     parser.add_argument('-maxRuleIds', type=int, default=2)
@@ -47,36 +45,15 @@ if __name__ == "__main__":
     if params.maxRuleIds<=0:
         logging.error('Max Rule ID cannot be less or equal than 0: '+str(params.maxRuleIds))
         exit(1)
-    if not (params.rules_rall=='None' or params.rules_rall==None) and not (params.compounds=='None' or params.compounds==None):
-        if os.path.exists(params.rules_rall) and os.path.exists(params.compounds):
-            rpToolServe.main_extrules(params.output,
-                                      params.rp2_pathways,
-                                      params.rp2paths_pathways,
-                                      params.rp2paths_compounds,
-                                      params.rules_rall,
-                                      params.compounds,
-                                      int(params.upper_flux_bound),
-                                      int(params.lower_flux_bound),
-                                      int(params.maxRuleIds),
-                                      params.compartment_id,
-                                      params.pathway_id,
-                                      params.species_group_id,
-                                      params.sink_species_group_id,
-                                      pubchem_search)    
-        else:
-            logging.error('The path to rules_rall does not seem to exist: '+str(params.rules_rall))
-            logging.error('The path to compounds does not seem to exist: '+str(params.compounds))
-            exit(1)
-    else:
-        rpToolServe.main_rp2(params.output,
-                             params.rp2_pathways,
-                             params.rp2paths_pathways,
-                             params.rp2paths_compounds,
-                             int(params.upper_flux_bound),
-                             int(params.lower_flux_bound),
-                             int(params.maxRuleIds),
-                             params.compartment_id,
-                             params.pathway_id,
-                             params.species_group_id,
-                             params.sink_species_group_id,
-                             pubchem_search)
+    rpToolServe.main_rp2(params.output,
+                         params.rp2_pathways,
+                         params.rp2paths_pathways,
+                         params.rp2paths_compounds,
+                         int(params.upper_flux_bound),
+                         int(params.lower_flux_bound),
+                         int(params.maxRuleIds),
+                         params.compartment_id,
+                         params.pathway_id,
+                         params.species_group_id,
+                         params.sink_species_group_id,
+                         pubchem_search)

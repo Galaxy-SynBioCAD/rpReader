@@ -30,7 +30,7 @@ def main(rp2_pathways,
          sink_species_group_id='rp_sink_species',
          pubchem_search='False'):
     docker_client = docker.from_env()
-    image_str = 'brsynth/rpreader-standalone'
+    image_str = 'brsynth/rpreader-standalone:v1'
     try:
         image = docker_client.images.get(image_str)
     except docker.errors.ImageNotFound:
@@ -79,6 +79,9 @@ def main(rp2_pathways,
         err = container.logs(stdout=False, stderr=True)
         err_str = err.decode('utf-8') 
         if not 'ERROR' in err_str:
+            shutil.copy(tmpOutputFolder+'/output.dat', output)
+        if 'WARNING' in err_str:
+            print(err_str)
             shutil.copy(tmpOutputFolder+'/output.dat', output)
         else:
             print(err_str)
