@@ -80,7 +80,7 @@ def main(rp2_pathways,
         err_str = err.decode('utf-8') 
         if not 'ERROR' in err_str:
             shutil.copy(tmpOutputFolder+'/output.dat', output)
-        if 'WARNING' in err_str:
+        elif 'WARNING' in err_str:
             print(err_str)
             shutil.copy(tmpOutputFolder+'/output.dat', output)
         else:
