@@ -1,7 +1,7 @@
 <tool id="rpReader" name="Pathways to SBML" version="0.1">
   <description>From the output of RP2Paths and RetroPath2.0, generate SBML pathways with mono-component reactions</description>
   <requirements>
-    <container type="docker">brsynth/rpreader-standalone</container>
+    <container type="docker">brsynth/rpreader-standalone:v2</container>
   </requirements>
   <stdio>
     <regex match="WARNING" level="warning" />

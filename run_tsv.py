@@ -26,7 +26,7 @@ def main(tsvfile,
          species_group_id='central_species',
          sink_species_group_id='rp_sink_species'):
     docker_client = docker.from_env()
-    image_str = 'brsynth/rpreader-standalone'
+    image_str = 'brsynth/rpreader-standalone:v2'
     try:
         image = docker_client.images.get(image_str)
     except docker.errors.ImageNotFound:
