@@ -13,14 +13,6 @@ sys.path.insert(0, '/home/')
 import rpTool as rpReader
 import rpCache
 
-logging.basicConfig(
-    #level=logging.DEBUG,
-    #level=logging.WARNING,
-    level=logging.ERROR,
-    format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
-    datefmt='%d-%m-%Y %H:%M:%S',
-)
-
 ## RetroPath2.0 reader for local packages
 #
 # TODO: need to fix the input
