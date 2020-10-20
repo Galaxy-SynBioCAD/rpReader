@@ -1,0 +1,432 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>rpReader’s Documentation &#8212; rpReader v0.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="rpreader-s-documentation">
+<h1>rpReader’s Documentation<a class="headerlink" href="#rpreader-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Welcome rpReader’s documentation. This tool provides a docker that can be accessed using the command line interface for generating rpSBML files from <a class="reference external" href="https://github.com/Galaxy-SynBioCAD/RetroPath2">RetroPath2.0</a> and <a class="reference external" href="https://github.com/Galaxy-SynBioCAD/rp2paths">rp2paths</a>, or a TSV file or a string input.</p>
+<p>To build the docker you must build a <a class="reference external" href="https://github.com/Galaxy-SynBioCAD/rpBase">rpBase</a> and <a class="reference external" href="https://github.com/Galaxy-SynBioCAD/rpCache">rpCache</a> docker, and then you can use the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build -t brsynth/rpreader-standalone:v2 .
+</pre></div>
+</div>
+<p>You can run the docker using the following command to parse the <a class="reference external" href="https://github.com/Galaxy-SynBioCAD/RetroPath2">RetroPath2.0</a> and <a class="reference external" href="https://github.com/Galaxy-SynBioCAD/rp2paths">rp2paths</a> output:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python run_rp2.py -rp2paths_compounds test/rp2paths_compounds.csv -rp2_pathways test/rp2_pathways.csv -rp2paths_pathways test/rp2paths_pathways.csv -output test/test_rpReader.tar
+</pre></div>
+</div>
+<p>If you have a TSV of the pathways (follow the example), you can run the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python run_tsv.py -tsv_file /path/to/input_file.tsv -output test/test_rpReader.tar
+</pre></div>
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<dl class="py class">
+<dt id="rpTool.rpReader">
+<em class="property">class </em><code class="sig-prename descclassname">rpTool.</code><code class="sig-name descname">rpReader</code><a class="headerlink" href="#rpTool.rpReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Call to transform the results of RetroPath2.0 and rp2paths to SBML files</p>
+<dl class="py method">
+<dt id="rpTool.rpReader.TSVtoSBML">
+<code class="sig-name descname">TSVtoSBML</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inFile</span></em>, <em class="sig-param"><span class="n">tmpOutputFolder</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">upper_flux_bound</span><span class="o">=</span><span class="default_value">99999</span></em>, <em class="sig-param"><span class="n">lower_flux_bound</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">compartment_id</span><span class="o">=</span><span class="default_value">'MNXC3'</span></em>, <em class="sig-param"><span class="n">pathway_id</span><span class="o">=</span><span class="default_value">'rp_pathway'</span></em>, <em class="sig-param"><span class="n">species_group_id</span><span class="o">=</span><span class="default_value">'central_species'</span></em>, <em class="sig-param"><span class="n">header_name</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="headerlink" href="#rpTool.rpReader.TSVtoSBML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the TSV file to SBML format and adds them to the self.sbml_paths</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inFile</strong> (<em>str</em>) – The input TSV file</p></li>
+<li><p><strong>tmpOutputFolder</strong> (<em>str</em>) – A folder to output the results (Default: None)</p></li>
+<li><p><strong>upper_flux_bound</strong> (<em>int</em>) – The default upper flux bound (Default: 999999)</p></li>
+<li><p><strong>lower_flux_bound</strong> (<em>int</em>) – The default lower flux bound (Default: 0)</p></li>
+<li><p><strong>compartment_id</strong> (<em>str</em>) – The compartment SBML id (Default: MNXC3)</p></li>
+<li><p><strong>pathway_id</strong> (<em>str</em>) – The Groups heterologous pathway id (Default: rp_pathway)</p></li>
+<li><p><strong>species_group_id</strong> (<em>str</em>) – The Groups id of the central species (Default: central_species)</p></li>
+<li><p><strong>header_name</strong> (<em>str</em>) – Overwrite the name given to the SBML files generated</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The dictionary of the pathways</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rpTool.rpReader.jsonToSBML">
+<code class="sig-name descname">jsonToSBML</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">collJson</span></em>, <em class="sig-param"><span class="n">upper_flux_bound</span><span class="o">=</span><span class="default_value">999999</span></em>, <em class="sig-param"><span class="n">lower_flux_bound</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">pathway_id</span><span class="o">=</span><span class="default_value">'rp_pathway'</span></em>, <em class="sig-param"><span class="n">compartment_id</span><span class="o">=</span><span class="default_value">'MNXC3'</span></em>, <em class="sig-param"><span class="n">species_group_id</span><span class="o">=</span><span class="default_value">'central_species'</span></em>, <em class="sig-param"><span class="n">pubchem_search</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#rpTool.rpReader.jsonToSBML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to generate an SBLM model from a JSON file (RetroPathRL)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>collJson</strong> (<em>str</em>) – The input JSON file</p></li>
+<li><p><strong>upper_flux_bound</strong> (<em>int</em>) – The default upper flux bound (Default: 999999)</p></li>
+<li><p><strong>lower_flux_bound</strong> (<em>int</em>) – The default lower flux bound (Default: 0)</p></li>
+<li><p><strong>pathway_id</strong> (<em>str</em>) – The Groups heterologous pathway id (Default: rp_pathway)</p></li>
+<li><p><strong>compartment_id</strong> (<em>str</em>) – The compartment SBML id (Default: MNXC3)</p></li>
+<li><p><strong>species_group_id</strong> (<em>str</em>) – The Groups id of the central species (Default: central_species)</p></li>
+<li><p><strong>pubchem_search</strong> (<em>str</em>) – Use the pubchem database to search for missing cross reference (Default: False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The dictionary of the pathways</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rpTool.rpReader.rp2ToSBML">
+<code class="sig-name descname">rp2ToSBML</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rp2_pathways</span></em>, <em class="sig-param"><span class="n">rp2paths_pathways</span></em>, <em class="sig-param"><span class="n">rp2paths_compounds</span></em>, <em class="sig-param"><span class="n">tmpOutputFolder</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">upper_flux_bound</span><span class="o">=</span><span class="default_value">999999</span></em>, <em class="sig-param"><span class="n">lower_flux_bound</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">maxRuleIds</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">pathway_id</span><span class="o">=</span><span class="default_value">'rp_pathway'</span></em>, <em class="sig-param"><span class="n">compartment_id</span><span class="o">=</span><span class="default_value">'MNXC3'</span></em>, <em class="sig-param"><span class="n">species_group_id</span><span class="o">=</span><span class="default_value">'central_species'</span></em>, <em class="sig-param"><span class="n">sink_species_group_id</span><span class="o">=</span><span class="default_value">'rp_sink_species'</span></em>, <em class="sig-param"><span class="n">pubchem_search</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#rpTool.rpReader.rp2ToSBML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to group all the functions for parsing RP2 output to SBML files</p>
+<p>Takes RP2paths’s compounds.txt and out_paths.csv and RetroPaths’s <a href="#id1"><span class="problematic" id="id2">*</span></a>_scope.csv files and generates SBML</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rp2_pathways</strong> (<em>str</em>) – The RetroPath2.0 results scope file</p></li>
+<li><p><strong>rp2paths_pathways</strong> (<em>str</em>) – The rp2paths result pathway (out_paths) file</p></li>
+<li><p><strong>rp2paths_compounds</strong> (<em>str</em>) – The rp2paths result compounds file</p></li>
+<li><p><strong>tmpOutputFolder</strong> (<em>str</em>) – A folder to output the results (Default: None)</p></li>
+<li><p><strong>upper_flux_bound</strong> (<em>int</em>) – The default upper flux bound (Default: 999999)</p></li>
+<li><p><strong>lower_flux_bound</strong> (<em>int</em>) – The default lower flux bound (Default: 0)</p></li>
+<li><p><strong>maxRuleIds</strong> (<em>int</em>) – The maximal number of rules associated with each step (Default: 10)</p></li>
+<li><p><strong>pathway_id</strong> (<em>str</em>) – The Groups heterologous pathway id (Default: rp_pathway)</p></li>
+<li><p><strong>compartment_id</strong> (<em>str</em>) – The compartment SBML id (Default: MNXC3)</p></li>
+<li><p><strong>species_group_id</strong> (<em>str</em>) – The Groups id of the central species (Default: central_species)</p></li>
+<li><p><strong>sink_species_group_id</strong> (<em>str</em>) – The Groups id of the rp_sink_species (Default: rp_sink_species)</p></li>
+<li><p><strong>pubchem_search</strong> (<em>bool</em>) – Use the pubchem database to search for missing cross reference (Default: False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionnary of pathways results</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="rpToolServe.rp2Reader_hdd">
+<em class="property">class </em><code class="sig-prename descclassname">rpToolServe.</code><code class="sig-name descname">rp2Reader_hdd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rpreader</span></em>, <em class="sig-param"><span class="n">rp2_pathways</span></em>, <em class="sig-param"><span class="n">rp2paths_pathways</span></em>, <em class="sig-param"><span class="n">rp2paths_compounds</span></em>, <em class="sig-param"><span class="n">upper_flux_bound</span></em>, <em class="sig-param"><span class="n">lower_flux_bound</span></em>, <em class="sig-param"><span class="n">maxRuleIds</span></em>, <em class="sig-param"><span class="n">pathway_id</span></em>, <em class="sig-param"><span class="n">compartment_id</span></em>, <em class="sig-param"><span class="n">species_group_id</span></em>, <em class="sig-param"><span class="n">sink_species_group_id</span></em>, <em class="sig-param"><span class="n">pubchem_search</span></em>, <em class="sig-param"><span class="n">outputTar</span></em><span class="sig-paren">)</span><a class="headerlink" href="#rpToolServe.rp2Reader_hdd" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main function to parse the files by writing them to HDD</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rpreader</strong> (<a class="reference internal" href="#rpTool.rpReader" title="rpTool.rpReader"><em>rpReader</em></a>) – rpReader object</p></li>
+<li><p><strong>rp2_pathways</strong> (<em>str</em>) – The RetroPath2.0 results scope file</p></li>
+<li><p><strong>rp2paths_pathways</strong> (<em>str</em>) – The rp2paths result pathway (out_paths) file</p></li>
+<li><p><strong>rp2paths_compounds</strong> (<em>str</em>) – The rp2paths result compounds file</p></li>
+<li><p><strong>upper_flux_bound</strong> (<em>int</em>) – The default upper flux bound (Default: 999999)</p></li>
+<li><p><strong>lower_flux_bound</strong> (<em>int</em>) – The default lower flux bound (Default: 0)</p></li>
+<li><p><strong>maxRuleIds</strong> (<em>int</em>) – The maximal number of rules associated with each step (Default: 2)</p></li>
+<li><p><strong>pathway_id</strong> (<em>str</em>) – The Groups heterologous pathway id (Default: rp_pathway)</p></li>
+<li><p><strong>compartment_id</strong> (<em>str</em>) – The compartment SBML id (Default: MNXC3)</p></li>
+<li><p><strong>species_group_id</strong> (<em>str</em>) – The Groups id of the central species (Default: central_species)</p></li>
+<li><p><strong>sink_species_group_id</strong> (<em>str</em>) – The Groups id of the rp_sink_species (Default: rp_sink_species)</p></li>
+<li><p><strong>pubchem_search</strong> (<em>bool</em>) – Use the pubchem database to search for missing cross reference (Default: False)</p></li>
+<li><p><strong>outputTar</strong> (<em>str</em>) – The output collection of rpSBML files</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Success or failure of the function</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="rpToolServe.rp2Reader_mem">
+<em class="property">class </em><code class="sig-prename descclassname">rpToolServe.</code><code class="sig-name descname">rp2Reader_mem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rpreader</span></em>, <em class="sig-param"><span class="n">rp2_pathways</span></em>, <em class="sig-param"><span class="n">rp2paths_pathways</span></em>, <em class="sig-param"><span class="n">rp2paths_compounds</span></em>, <em class="sig-param"><span class="n">upper_flux_bound</span></em>, <em class="sig-param"><span class="n">lower_flux_bound</span></em>, <em class="sig-param"><span class="n">maxRuleIds</span></em>, <em class="sig-param"><span class="n">pathway_id</span></em>, <em class="sig-param"><span class="n">compartment_id</span></em>, <em class="sig-param"><span class="n">species_group_id</span></em>, <em class="sig-param"><span class="n">sink_species_group_id</span></em>, <em class="sig-param"><span class="n">pubchem_search</span></em>, <em class="sig-param"><span class="n">outputTar</span></em><span class="sig-paren">)</span><a class="headerlink" href="#rpToolServe.rp2Reader_mem" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main function to parse the files without writing to HDD</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rpreader</strong> (<a class="reference internal" href="#rpTool.rpReader" title="rpTool.rpReader"><em>rpReader</em></a>) – rpReader object</p></li>
+<li><p><strong>rp2_pathways</strong> (<em>str</em>) – The RetroPath2.0 results scope file</p></li>
+<li><p><strong>rp2paths_pathways</strong> (<em>str</em>) – The rp2paths result pathway (out_paths) file</p></li>
+<li><p><strong>rp2paths_compounds</strong> (<em>str</em>) – The rp2paths result compounds file</p></li>
+<li><p><strong>upper_flux_bound</strong> (<em>int</em>) – The default upper flux bound (Default: 999999)</p></li>
+<li><p><strong>lower_flux_bound</strong> (<em>int</em>) – The default lower flux bound (Default: 0)</p></li>
+<li><p><strong>maxRuleIds</strong> (<em>int</em>) – The maximal number of rules associated with each step (Default: 2)</p></li>
+<li><p><strong>pathway_id</strong> (<em>str</em>) – The Groups heterologous pathway id (Default: rp_pathway)</p></li>
+<li><p><strong>compartment_id</strong> (<em>str</em>) – The compartment SBML id (Default: MNXC3)</p></li>
+<li><p><strong>species_group_id</strong> (<em>str</em>) – The Groups id of the central species (Default: central_species)</p></li>
+<li><p><strong>sink_species_group_id</strong> (<em>str</em>) – The Groups id of the rp_sink_species (Default: rp_sink_species)</p></li>
+<li><p><strong>pubchem_search</strong> (<em>bool</em>) – Use the pubchem database to search for missing cross reference (Default: False)</p></li>
+<li><p><strong>outputTar</strong> (<em>str</em>) – The output collection of rpSBML files</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Success or failure of the function</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="rpToolServe.main_rp2">
+<em class="property">class </em><code class="sig-prename descclassname">rpToolServe.</code><code class="sig-name descname">main_rp2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputTar</span></em>, <em class="sig-param"><span class="n">rp2_pathways</span></em>, <em class="sig-param"><span class="n">rp2paths_pathways</span></em>, <em class="sig-param"><span class="n">rp2paths_compounds</span></em>, <em class="sig-param"><span class="n">upper_flux_bound</span><span class="o">=</span><span class="default_value">999999</span></em>, <em class="sig-param"><span class="n">lower_flux_bound</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">maxRuleIds</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">compartment_id</span><span class="o">=</span><span class="default_value">'MNXC3'</span></em>, <em class="sig-param"><span class="n">pathway_id</span><span class="o">=</span><span class="default_value">'rp_pathway'</span></em>, <em class="sig-param"><span class="n">species_group_id</span><span class="o">=</span><span class="default_value">'central_species'</span></em>, <em class="sig-param"><span class="n">sink_species_group_id</span><span class="o">=</span><span class="default_value">'rp_sink_species'</span></em>, <em class="sig-param"><span class="n">pubchem_search</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#rpToolServe.main_rp2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function parse the results of RetroPath2.0 and rp2paths</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputTar</strong> (<em>str</em>) – The output collection of rpSBML files</p></li>
+<li><p><strong>rp2_pathways</strong> (<em>str</em>) – The RetroPath2.0 results scope file</p></li>
+<li><p><strong>rp2paths_pathways</strong> (<em>str</em>) – The rp2paths result pathway (out_paths) file</p></li>
+<li><p><strong>rp2paths_compounds</strong> (<em>str</em>) – The rp2paths result compounds file</p></li>
+<li><p><strong>upper_flux_bound</strong> (<em>int</em>) – The default upper flux bound (Default: 999999)</p></li>
+<li><p><strong>lower_flux_bound</strong> (<em>int</em>) – The default lower flux bound (Default: 0)</p></li>
+<li><p><strong>maxRuleIds</strong> (<em>int</em>) – The maximal number of rules associated with each step (Default: 2)</p></li>
+<li><p><strong>compartment_id</strong> (<em>str</em>) – The compartment SBML id (Default: MNXC3)</p></li>
+<li><p><strong>pathway_id</strong> (<em>str</em>) – The Groups heterologous pathway id (Default: rp_pathway)</p></li>
+<li><p><strong>species_group_id</strong> (<em>str</em>) – The Groups id of the central species (Default: central_species)</p></li>
+<li><p><strong>sink_species_group_id</strong> (<em>str</em>) – The Groups id of the rp_sink_species (Default: rp_sink_species)</p></li>
+<li><p><strong>pubchem_search</strong> (<em>bool</em>) – Use the pubchem database to search for missing cross reference (Default: False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="rpToolServe.main_tsv">
+<em class="property">class </em><code class="sig-prename descclassname">rpToolServe.</code><code class="sig-name descname">main_tsv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputTar</span></em>, <em class="sig-param"><span class="n">tsvfile</span></em>, <em class="sig-param"><span class="n">upper_flux_bound</span><span class="o">=</span><span class="default_value">999999</span></em>, <em class="sig-param"><span class="n">lower_flux_bound</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">compartment_id</span><span class="o">=</span><span class="default_value">'MNXC3'</span></em>, <em class="sig-param"><span class="n">pathway_id</span><span class="o">=</span><span class="default_value">'rp_pathway'</span></em>, <em class="sig-param"><span class="n">species_group_id</span><span class="o">=</span><span class="default_value">'central_species'</span></em>, <em class="sig-param"><span class="n">sink_species_group_id</span><span class="o">=</span><span class="default_value">'rp_sink_species'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#rpToolServe.main_tsv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function parse a defined TSV file to convert to rpSBML files</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputTar</strong> (<em>str</em>) – The output collection of rpSBML files</p></li>
+<li><p><strong>tsvfile</strong> (<em>str</em>) – The TSV of pathway to be parsed</p></li>
+<li><p><strong>upper_flux_bound</strong> (<em>int</em>) – The default upper flux bound (Default: 999999)</p></li>
+<li><p><strong>lower_flux_bound</strong> (<em>int</em>) – The default lower flux bound (Default: 0)</p></li>
+<li><p><strong>compartment_id</strong> (<em>str</em>) – The compartment SBML id (Default: MNXC3)</p></li>
+<li><p><strong>pathway_id</strong> (<em>str</em>) – The Groups heterologous pathway id (Default: rp_pathway)</p></li>
+<li><p><strong>species_group_id</strong> (<em>str</em>) – The Groups id of the central species (Default: central_species)</p></li>
+<li><p><strong>sink_species_group_id</strong> (<em>str</em>) – The Groups id of the rp_sink_species (Default: rp_sink_species)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Success or failure of the function</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="rpToolServe.main_extrules">
+<em class="property">class </em><code class="sig-prename descclassname">rpToolServe.</code><code class="sig-name descname">main_extrules</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">outputTar</span></em>, <em class="sig-param"><span class="n">rp2_pathways</span></em>, <em class="sig-param"><span class="n">rp2paths_pathways</span></em>, <em class="sig-param"><span class="n">rp2paths_compounds</span></em>, <em class="sig-param"><span class="n">rules_rall_tsv</span></em>, <em class="sig-param"><span class="n">compounds_tsv</span></em>, <em class="sig-param"><span class="n">upper_flux_bound</span><span class="o">=</span><span class="default_value">999999</span></em>, <em class="sig-param"><span class="n">lower_flux_bound</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">maxRuleIds</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">compartment_id</span><span class="o">=</span><span class="default_value">'MNXC3'</span></em>, <em class="sig-param"><span class="n">pathway_id</span><span class="o">=</span><span class="default_value">'rp_pathway'</span></em>, <em class="sig-param"><span class="n">species_group_id</span><span class="o">=</span><span class="default_value">'central_species'</span></em>, <em class="sig-param"><span class="n">sink_species_group_id</span><span class="o">=</span><span class="default_value">'rp_sink_species'</span></em>, <em class="sig-param"><span class="n">pubchem_search</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#rpToolServe.main_extrules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function parse the results of RetroPath2.0 and rp2paths including external rules file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputTar</strong> (<em>str</em>) – The output collection of rpSBML files</p></li>
+<li><p><strong>rp2_pathways</strong> (<em>str</em>) – The RetroPath2.0 results scope file</p></li>
+<li><p><strong>rp2paths_pathways</strong> (<em>str</em>) – The rp2paths result pathway (out_paths) file</p></li>
+<li><p><strong>rp2paths_compounds</strong> (<em>str</em>) – The rp2paths result compounds file</p></li>
+<li><p><strong>rules_rall_tsv</strong> (<em>str</em>) – The rules file</p></li>
+<li><p><strong>compounds_tsv</strong> (<em>str</em>) – The compound file</p></li>
+<li><p><strong>upper_flux_bound</strong> (<em>int</em>) – The default upper flux bound (Default: 999999)</p></li>
+<li><p><strong>lower_flux_bound</strong> (<em>int</em>) – The default lower flux bound (Default: 0)</p></li>
+<li><p><strong>maxRuleIds</strong> (<em>int</em>) – The maximal number of rules associated with each step (Default: 2)</p></li>
+<li><p><strong>compartment_id</strong> (<em>str</em>) – The compartment SBML id (Default: MNXC3)</p></li>
+<li><p><strong>pathway_id</strong> (<em>str</em>) – The Groups heterologous pathway id (Default: rp_pathway)</p></li>
+<li><p><strong>species_group_id</strong> (<em>str</em>) – The Groups id of the central species (Default: central_species)</p></li>
+<li><p><strong>sink_species_group_id</strong> (<em>str</em>) – The Groups id of the rp_sink_species (Default: rp_sink_species)</p></li>
+<li><p><strong>pubchem_search</strong> (<em>bool</em>) – Use the pubchem database to search for missing cross reference (Default: False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="run_rp2.main">
+<em class="property">class </em><code class="sig-prename descclassname">run_rp2.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rp2_pathways</span></em>, <em class="sig-param"><span class="n">rp2paths_pathways</span></em>, <em class="sig-param"><span class="n">rp2paths_compounds</span></em>, <em class="sig-param"><span class="n">output</span></em>, <em class="sig-param"><span class="n">rules_rall</span><span class="o">=</span><span class="default_value">'None'</span></em>, <em class="sig-param"><span class="n">compounds</span><span class="o">=</span><span class="default_value">'None'</span></em>, <em class="sig-param"><span class="n">upper_flux_bound</span><span class="o">=</span><span class="default_value">999999</span></em>, <em class="sig-param"><span class="n">lower_flux_bound</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">maxRuleIds</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">compartment_id</span><span class="o">=</span><span class="default_value">'MNXC3'</span></em>, <em class="sig-param"><span class="n">pathway_id</span><span class="o">=</span><span class="default_value">'rp_pathway'</span></em>, <em class="sig-param"><span class="n">species_group_id</span><span class="o">=</span><span class="default_value">'central_species'</span></em>, <em class="sig-param"><span class="n">sink_species_group_id</span><span class="o">=</span><span class="default_value">'rp_sink_species'</span></em>, <em class="sig-param"><span class="n">pubchem_search</span><span class="o">=</span><span class="default_value">'False'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#run_rp2.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function parse the results of RetroPath2.0 and rp2paths including external rules file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rp2_pathways</strong> (<em>str</em>) – The RetroPath2.0 results scope file</p></li>
+<li><p><strong>rp2paths_pathways</strong> (<em>str</em>) – The rp2paths result pathway (out_paths) file</p></li>
+<li><p><strong>rp2paths_compounds</strong> (<em>str</em>) – The rp2paths result compounds file</p></li>
+<li><p><strong>output</strong> (<em>str</em>) – The output collection of rpSBML files</p></li>
+<li><p><strong>rules_rall</strong> (<em>str</em>) – The rules file (Default: None)</p></li>
+<li><p><strong>compounds</strong> (<em>str</em>) – The compound file (Default: None)</p></li>
+<li><p><strong>upper_flux_bound</strong> (<em>int</em>) – The default upper flux bound (Default: 999999)</p></li>
+<li><p><strong>lower_flux_bound</strong> (<em>int</em>) – The default lower flux bound (Default: 0)</p></li>
+<li><p><strong>maxRuleIds</strong> (<em>int</em>) – The maximal number of rules associated with each step (Default: 2)</p></li>
+<li><p><strong>compartment_id</strong> (<em>str</em>) – The compartment SBML id (Default: MNXC3)</p></li>
+<li><p><strong>pathway_id</strong> (<em>str</em>) – The Groups heterologous pathway id (Default: rp_pathway)</p></li>
+<li><p><strong>species_group_id</strong> (<em>str</em>) – The Groups id of the central species (Default: central_species)</p></li>
+<li><p><strong>sink_species_group_id</strong> (<em>str</em>) – The Groups id of the rp_sink_species (Default: rp_sink_species)</p></li>
+<li><p><strong>pubchem_search</strong> (<em>bool</em>) – Use the pubchem database to search for missing cross reference (Default: False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="run_tsv.main">
+<em class="property">class </em><code class="sig-prename descclassname">run_tsv.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tsvfile</span></em>, <em class="sig-param"><span class="n">output</span></em>, <em class="sig-param"><span class="n">upper_flux_bound</span><span class="o">=</span><span class="default_value">999999</span></em>, <em class="sig-param"><span class="n">lower_flux_bound</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">compartment_id</span><span class="o">=</span><span class="default_value">'MNXC3'</span></em>, <em class="sig-param"><span class="n">pathway_id</span><span class="o">=</span><span class="default_value">'rp_pathway'</span></em>, <em class="sig-param"><span class="n">species_group_id</span><span class="o">=</span><span class="default_value">'central_species'</span></em>, <em class="sig-param"><span class="n">sink_species_group_id</span><span class="o">=</span><span class="default_value">'rp_sink_species'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#run_tsv.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function parse the results of RetroPath2.0 and rp2paths including external rules file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tsvfile</strong> (<em>str</em>) – The path to the tsv file</p></li>
+<li><p><strong>output</strong> (<em>str</em>) – The output collection of rpSBML files</p></li>
+<li><p><strong>upper_flux_bound</strong> (<em>int</em>) – The default upper flux bound (Default: 999999)</p></li>
+<li><p><strong>lower_flux_bound</strong> (<em>int</em>) – The default lower flux bound (Default: 0)</p></li>
+<li><p><strong>compartment_id</strong> (<em>str</em>) – The compartment SBML id (Default: MNXC3)</p></li>
+<li><p><strong>pathway_id</strong> (<em>str</em>) – The Groups heterologous pathway id (Default: rp_pathway)</p></li>
+<li><p><strong>species_group_id</strong> (<em>str</em>) – The Groups id of the central species (Default: central_species)</p></li>
+<li><p><strong>sink_species_group_id</strong> (<em>str</em>) – The Groups id of the rp_sink_species (Default: rp_sink_species)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="run_str.main">
+<em class="property">class </em><code class="sig-prename descclassname">run_str.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reaction_string</span></em>, <em class="sig-param"><span class="n">ec</span></em>, <em class="sig-param"><span class="n">upper_flux_bound</span></em>, <em class="sig-param"><span class="n">lower_flux_bound</span></em>, <em class="sig-param"><span class="n">pathway_id</span></em>, <em class="sig-param"><span class="n">compartment_id</span></em>, <em class="sig-param"><span class="n">species_group_id</span></em>, <em class="sig-param"><span class="n">output</span></em><span class="sig-paren">)</span><a class="headerlink" href="#run_str.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">rpReader</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Melchior du Lac.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

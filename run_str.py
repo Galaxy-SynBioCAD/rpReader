@@ -24,7 +24,7 @@ def main(reaction_string,
           pathway_id,
           compartment_id,
           species_group_id,
-          output)
+          output):
     docker_client = docker.from_env()
     image_str = 'brsynth/rpreader-standalone:dev'
     try:
