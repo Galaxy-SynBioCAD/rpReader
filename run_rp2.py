@@ -31,6 +31,41 @@ def main(rp2_pathways,
          species_group_id='central_species',
          sink_species_group_id='rp_sink_species',
          pubchem_search='False'):
+    """Function parse the results of RetroPath2.0 and rp2paths including external rules file
+
+    :param rp2_pathways: The RetroPath2.0 results scope file
+    :param rp2paths_pathways: The rp2paths result pathway (out_paths) file
+    :param rp2paths_compounds: The rp2paths result compounds file
+    :param output: The output collection of rpSBML files
+    :param rules_rall: The rules file (Default: None)
+    :param compounds: The compound file (Default: None)
+    :param upper_flux_bound: The default upper flux bound (Default: 999999)
+    :param lower_flux_bound: The default lower flux bound (Default: 0)
+    :param maxRuleIds: The maximal number of rules associated with each step (Default: 2)
+    :param compartment_id: The compartment SBML id (Default: MNXC3)
+    :param pathway_id: The Groups heterologous pathway id (Default: rp_pathway)
+    :param species_group_id: The Groups id of the central species (Default: central_species)
+    :param sink_species_group_id: The Groups id of the rp_sink_species (Default: rp_sink_species)
+    :param pubchem_search: Use the pubchem database to search for missing cross reference (Default: False)
+
+    :type rp2_pathways: str 
+    :type rp2paths_pathways: str
+    :type rp2paths_compounds: str
+    :type output: str 
+    :type rules_rall: str
+    :type compounds: str
+    :type upper_flux_bound: int
+    :type lower_flux_bound: int
+    :type maxRuleIds: int
+    :type compartment_id: str
+    :type pathway_id: str
+    :type species_group_id: str
+    :type sink_species_group_id: str
+    :type pubchem_search: bool
+
+    :rtype: None
+    :return: None
+    """
     docker_client = docker.from_env()
     image_str = 'brsynth/rpreader-standalone:v2'
     try:
@@ -44,90 +79,96 @@ def main(rp2_pathways,
             logging.error('Cannot pull image: '+str(image_str))
             exit(1)
     with tempfile.TemporaryDirectory() as tmpOutputFolder:
-        shutil.copy(rp2paths_compounds, tmpOutputFolder+'/rp2paths_compounds.csv')
-        shutil.copy(rp2paths_pathways, tmpOutputFolder+'/rp2paths_pathways.csv')
-        shutil.copy(rp2_pathways, tmpOutputFolder+'/rp2_pathways.csv')
-        if os.path.exists(rules_rall) and os.path.exists(compounds):
-            shutil.copy(rules_rall, tmpOutputFolder+'/rules_rall.tsv')
-            shutil.copy(compounds, tmpOutputFolder+'/compounds.tsv')
-            command = ['/home/tool_rp2Reader.py',
-                       '-rp2paths_compounds',
-                       '/home/tmp_output/rp2paths_compounds.csv',
-                       '-rp2_pathways',
-                       '/home/tmp_output/rp2_pathways.csv',
-                       '-rp2paths_pathways',
-                       '/home/tmp_output/rp2paths_pathways.csv',
-                       '-upper_flux_bound',
-                       str(upper_flux_bound),
-                       '-lower_flux_bound',
-                       str(lower_flux_bound),
-                       '-rules_rall',
-                       '/home/tmp_output/rules_rall.tsv',
-                       '-compounds',
-                       '/home/tmp_output/compounds.tsv',
-                       '-maxRuleIds',
-                       str(maxRuleIds),
-                       '-pathway_id',
-                       str(pathway_id),
-                       '-compartment_id',
-                       str(compartment_id),
-                       '-species_group_id',
-                       str(species_group_id),
-                       '-sink_species_group_id',
-                       str(sink_species_group_id),
-                       '-pubchem_search',
-                       str(pubchem_search),
-                       '-output',
-                       '/home/tmp_output/output.dat']
+        if os.path.exists(rp2paths_compounds) and os.path.exists(rp2paths_pathways) and os.path.exists(rp2_pathways):
+            shutil.copy(rp2paths_compounds, tmpOutputFolder+'/rp2paths_compounds.csv')
+            shutil.copy(rp2paths_pathways, tmpOutputFolder+'/rp2paths_pathways.csv')
+            shutil.copy(rp2_pathways, tmpOutputFolder+'/rp2_pathways.csv')
+            if os.path.exists(rules_rall) and os.path.exists(compounds):
+                shutil.copy(rules_rall, tmpOutputFolder+'/rules_rall.tsv')
+                shutil.copy(compounds, tmpOutputFolder+'/compounds.tsv')
+                command = ['/home/tool_rp2Reader.py',
+                           '-rp2paths_compounds',
+                           '/home/tmp_output/rp2paths_compounds.csv',
+                           '-rp2_pathways',
+                           '/home/tmp_output/rp2_pathways.csv',
+                           '-rp2paths_pathways',
+                           '/home/tmp_output/rp2paths_pathways.csv',
+                           '-upper_flux_bound',
+                           str(upper_flux_bound),
+                           '-lower_flux_bound',
+                           str(lower_flux_bound),
+                           '-rules_rall',
+                           '/home/tmp_output/rules_rall.tsv',
+                           '-compounds',
+                           '/home/tmp_output/compounds.tsv',
+                           '-maxRuleIds',
+                           str(maxRuleIds),
+                           '-pathway_id',
+                           str(pathway_id),
+                           '-compartment_id',
+                           str(compartment_id),
+                           '-species_group_id',
+                           str(species_group_id),
+                           '-sink_species_group_id',
+                           str(sink_species_group_id),
+                           '-pubchem_search',
+                           str(pubchem_search),
+                           '-output',
+                           '/home/tmp_output/output.dat']
+            else:
+                command = ['/home/tool_rp2Reader.py',
+                           '-rp2paths_compounds',
+                           '/home/tmp_output/rp2paths_compounds.csv',
+                           '-rp2_pathways',
+                           '/home/tmp_output/rp2_pathways.csv',
+                           '-rp2paths_pathways',
+                           '/home/tmp_output/rp2paths_pathways.csv',
+                           '-upper_flux_bound',
+                           str(upper_flux_bound),
+                           '-lower_flux_bound',
+                           str(lower_flux_bound),
+                           '-rules_rall',
+                           'None',
+                           '-compounds',
+                           'None',
+                           '-maxRuleIds',
+                           str(maxRuleIds),
+                           '-pathway_id',
+                           str(pathway_id),
+                           '-compartment_id',
+                           str(compartment_id),
+                           '-species_group_id',
+                           str(species_group_id),
+                           '-sink_species_group_id',
+                           str(sink_species_group_id),
+                           '-pubchem_search',
+                           str(pubchem_search),
+                           '-output',
+                           '/home/tmp_output/output.dat']
+            container = docker_client.containers.run(image_str,
+                                                     command,
+                                                     detach=True,
+                                                     stderr=True,
+                                                     volumes={tmpOutputFolder+'/': {'bind': '/home/tmp_output', 'mode': 'rw'}})
+            container.wait()
+            err = container.logs(stdout=False, stderr=True)
+            err_str = err.decode('utf-8')
+            if 'ERROR' in err_str:
+                print(err_str)
+            elif 'WARNING' in err_str:
+                print(err_str)
+            if not os.path.exists(tmpOutputFolder+'/output.dat'):
+                print('ERROR: Cannot find the output file: '+str(tmpOutputFolder+'/output.dat'))
+            else:
+                shutil.copy(tmpOutputFolder+'/output.dat', output)
+            container.remove()
         else:
-            command = ['/home/tool_rp2Reader.py',
-                       '-rp2paths_compounds',
-                       '/home/tmp_output/rp2paths_compounds.csv',
-                       '-rp2_pathways',
-                       '/home/tmp_output/rp2_pathways.csv',
-                       '-rp2paths_pathways',
-                       '/home/tmp_output/rp2paths_pathways.csv',
-                       '-upper_flux_bound',
-                       str(upper_flux_bound),
-                       '-lower_flux_bound',
-                       str(lower_flux_bound),
-                       '-rules_rall',
-                       'None',
-                       '-compounds',
-                       'None',
-                       '-maxRuleIds',
-                       str(maxRuleIds),
-                       '-pathway_id',
-                       str(pathway_id),
-                       '-compartment_id',
-                       str(compartment_id),
-                       '-species_group_id',
-                       str(species_group_id),
-                       '-sink_species_group_id',
-                       str(sink_species_group_id),
-                       '-pubchem_search',
-                       str(pubchem_search),
-                       '-output',
-                       '/home/tmp_output/output.dat']
-        container = docker_client.containers.run(image_str,
-												 command,
-												 detach=True,
-                                                 stderr=True,
-												 volumes={tmpOutputFolder+'/': {'bind': '/home/tmp_output', 'mode': 'rw'}})
-        container.wait()
-        err = container.logs(stdout=False, stderr=True)
-        err_str = err.decode('utf-8') 
-        print(err_str)
-        if not 'ERROR' in err_str:
-            shutil.copy(tmpOutputFolder+'/output.dat', output)
-        else:
-            print(err_str)
-        container.remove()
+            logging.error('Cannot find one or more of the input files: '+str(rp2paths_compounds))
+            logging.error('Cannot find one or more of the input files: '+str(rp2paths_pathways))
+            logging.error('Cannot find one or more of the input files: '+str(rp2_pathways))
+            exit(1)
 
 
-##
-#
-#
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Convert the results of RP2 and rp2paths to SBML files')
     parser.add_argument('-rp2paths_compounds', type=str)
