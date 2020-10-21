@@ -18,7 +18,7 @@ Introduction
 .. _rpBase: https://github.com/Galaxy-SynBioCAD/rpBase
 .. _rpCache: https://github.com/Galaxy-SynBioCAD/rpCache
 
-Welcome rpReader's documentation. This tool provides a docker that can be accessed using the command line interface for generating rpSBML files from RetroPath2.0_ and rp2paths_, or a TSV file or a string input.
+Welcome rpReader's documentation. This tool provides a docker that can be accessed using the command line interface for generating rpSBML_ files from RetroPath2.0_ and rp2paths_, or a TSV file or a string input.
 
 To build the docker you must build a rpBase_ and rpCache_ docker, and then you can use the following command:
 
