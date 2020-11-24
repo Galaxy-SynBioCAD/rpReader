@@ -1,4 +1,4 @@
-FROM brsynth/rpcache:v2
+FROM brsynth/rpcache
 
 COPY rpTool.py /home/
 COPY rpToolServe.py /home/
